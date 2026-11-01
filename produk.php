@@ -160,9 +160,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (empty($items) || $total_price <= 0) {
-    die("Tidak ada item yang diproses atau total harga tidak valid.");
-}
 
 
 $snap_token = null;
@@ -280,7 +277,7 @@ if (!empty($items) && $total_price > 0) {
             width: 100%;
         }
     </style>
-    <title>Alzi Petshop</title>
+    <title><?php echo isset($productd['name']) ? htmlspecialchars($productd['name']) . " — Alzi Petshop" : "Alzi Petshop"; ?></title>
 </head>
 
 <body>

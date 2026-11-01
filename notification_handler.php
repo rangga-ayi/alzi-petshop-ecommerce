@@ -23,7 +23,7 @@ try {
               gross_amount = $gross_amount, 
               update_time = NOW()
               WHERE order_id = '$order_id'";
-    mysqli_query($connection, $query);
+    mysqli_query($conn, $query);
 
     // Kirim respons OK ke Midtrans
     echo "OK";

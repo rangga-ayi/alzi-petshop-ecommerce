@@ -5,7 +5,7 @@ require 'midtrans_config.php'; // Konfigurasi Midtrans
 
 // Pastikan user sudah login
 if (!isset($_SESSION['userid'])) {
-    header("Location: login.php");
+    header("Location: login/login_form.php");
     exit;
 }
 
