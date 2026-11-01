@@ -53,7 +53,7 @@ $snap_token = null; // Default nilai token
 if (!empty($items) && $total_price_midtrans > 0) {
     // Data transaksi jika keranjang tidak kosong
     $transaction_details = [
-        'order_id' => rand(),
+        'order_id' => 'ALZI-' . time() . '-' . rand(100, 999),
         'gross_amount' => $total_price_midtrans
     ];
 

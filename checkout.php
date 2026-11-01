@@ -45,7 +45,7 @@ while ($row = mysqli_fetch_assoc($result_cart)) {
 
 // Buat parameter transaksi
 $transaction_details = [
-    'order_id' => rand(),
+    'order_id' => 'ALZI-' . time() . '-' . rand(100, 999),
     'gross_amount' => $total_price
 ];
 

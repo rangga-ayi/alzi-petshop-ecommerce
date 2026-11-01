@@ -168,7 +168,7 @@ if (empty($items) || $total_price <= 0) {
 $snap_token = null;
 if (!empty($items) && $total_price > 0) {
     $transaction_details = [
-        'order_id' => rand(),
+        'order_id' => 'ALZI-' . time() . '-' . rand(100, 999),
         'gross_amount' => $total_price
     ];
 

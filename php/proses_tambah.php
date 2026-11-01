@@ -2,35 +2,40 @@
 require 'php.php';
 
 if (isset($_POST["name"]) && isset($_POST["description"]) && isset($_POST["price"]) && isset($_POST["category"])) {
-    $id = $_POST["id"];
-    $name = $_POST["name"];
-    $description = $_POST["description"];
-    $price = $_POST["price"];
-    $category = $_POST["category"];
-    $satuan = $_POST["satuan"];
+    $name = trim($_POST["name"]);
+    $description = trim($_POST["description"]);
+    $price = intval(preg_replace('/[^0-9]/', '', $_POST["price"]));
+    $category = trim($_POST["category"]);
+    $satuan = isset($_POST["satuan"]) ? trim($_POST["satuan"]) : '';
 
-    // Upload Gambar
-    if ($_FILES["image"]["error"] == UPLOAD_ERR_OK) {
-        $image = basename($_FILES["image"]["name"]);
-        $target_dir = "./imgs/";
-        $target_dir1 = "../imgs/";
+    $target_file = "";
 
-        if (!file_exists($target_dir1)) {
-            mkdir($target_dir1, 0777, true);
+    // Upload Gambar dengan validasi ekstensi aman
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] == UPLOAD_ERR_OK) {
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        $ext = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+
+        if (in_array($ext, $allowed_ext)) {
+            $image_clean = preg_replace("/[^a-zA-Z0-9._-]/", "", basename($_FILES["image"]["name"]));
+            $image_name = time() . '_' . $image_clean;
+            $target_dir1 = "../imgs/";
+
+            if (!file_exists($target_dir1)) {
+                mkdir($target_dir1, 0777, true);
+            }
+
+            $target_file = "./imgs/" . $image_name;
+            $destination = $target_dir1 . $image_name;
+            move_uploaded_file($_FILES["image"]["tmp_name"], $destination);
         }
-
-        $target_file = $target_dir . $image;
-        $target_file1 = $target_dir1 . $image;
-        move_uploaded_file($_FILES["image"]["tmp_name"], $target_file1);
-    } else {
-        $target_file = "";
     }
 
-    $query = "INSERT INTO products (id, name, description, price, image, category, satuan) 
-            VALUES ('$id', '$name', '$description', '$price', '$target_file', '$category', '$satuan')";
-
-    mysqli_query($conn, $query);
+    $stmt = $conn->prepare("INSERT INTO products (name, description, price, image, category, satuan) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssisss", $name, $description, $price, $target_file, $category, $satuan);
+    $stmt->execute();
+    $stmt->close();
 
     header("Location: ../index_p.php");
+    exit;
 }
 ?>

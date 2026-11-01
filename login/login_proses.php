@@ -6,17 +6,21 @@ session_start();
 include '../php/php.php';
 
 // Menangkap data yang dikirim dari form login
-$email = $_POST['email'];
-$password = sha1($_POST['password']);
+$email = isset($_POST['email']) ? trim($_POST['email']) : '';
+$password = isset($_POST['password']) ? sha1($_POST['password']) : '';
 
-// Menyeleksi data user dengan email dan password yang sesuai
-$login = mysqli_query($conn, "SELECT * FROM tbluser WHERE email='$email' AND password='$password'");
+// Menyeleksi data user dengan email dan password menggunakan prepared statement
+$stmt = $conn->prepare("SELECT * FROM tbluser WHERE email = ? AND password = ?");
+$stmt->bind_param("ss", $email, $password);
+$stmt->execute();
+$login = $stmt->get_result();
+
 // Menghitung jumlah data yang ditemukan
-$cek = mysqli_num_rows($login);
+$cek = $login->num_rows;
 
 // Cek apakah email dan password ditemukan pada database
 if ($cek > 0) {
-    $data = mysqli_fetch_assoc($login);
+    $data = $login->fetch_assoc();
 
     // Buat session login dan user ID
     $_SESSION['userid'] = $data['id'];
@@ -36,4 +40,5 @@ if ($cek > 0) {
 } else {
     header("Location: login_form.php?error=Email atau Password salah");
 }
+$stmt->close();
 ?>
