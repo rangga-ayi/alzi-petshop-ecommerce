@@ -85,7 +85,8 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="admin.php">Users</a></li>
-                    <li><a class="dropdown-item" href="#">Cart</a></li>
+                    <li><a class="dropdown-item" href="cart.php">Cart</a></li>
+                    <li><a class="dropdown-item" href="transaction.php">Transaction</a></li>
                 </ul>
             </div>
             <div class="d-flex ms-auto">
@@ -125,9 +126,16 @@
 
                                 if ($result->num_rows > 0) {
                                     while($row = $result->fetch_assoc()) {
+                                        $id_safe = htmlspecialchars($row['id']);
+                                        $name_safe = htmlspecialchars($row['name']);
+                                        $price_safe = rupiah($row['price']);
+                                        $img_safe = htmlspecialchars($row['image']);
+                                        $cat_safe = htmlspecialchars($row['category']);
+                                        $satuan_safe = htmlspecialchars($row['satuan']);
+
                                         echo "<tr>
-                                                <td>{$row['id']}</td>
-                                                <td>{$row['name']}</td>";
+                                                <td>{$id_safe}</td>
+                                                <td>{$name_safe}</td>";
                                             ?>
                         <td id="description-<?php echo $row['id']; ?>" class="deskripsi-terbatas"
                             onclick="toggleDescription(<?php echo $row['id']; ?>)">
@@ -147,13 +155,13 @@
                         </td>
                         <?php
                                                 echo "
-                                                <td>{$row['price']}</td>
-                                                <td><img src='../{$row['image']}' alt='{$row['name']}' width='100'></td>
-                                                <td class='hide-on-mobile'>{$row['category']}</td>
-                                                <td class='hide-on-mobile'>{$row['satuan']}</td>
+                                                <td>{$price_safe}</td>
+                                                <td><img src='../{$img_safe}' alt='{$name_safe}' width='100'></td>
+                                                <td class='hide-on-mobile'>{$cat_safe}</td>
+                                                <td class='hide-on-mobile'>{$satuan_safe}</td>
                                                 <td>
-                                                    <a href='edit.php?product_id={$row['id']}' class='btn btn-warning my-1'>Edit</a>
-                                                    <a href='delete.php?id={$row['id']}' class='btn btn-danger my-1'>Delete</a>
+                                                    <a href='edit.php?product_id={$id_safe}' class='btn btn-warning my-1'>Edit</a>
+                                                    <a href='../php/hapus.php?product_id={$id_safe}' class='btn btn-danger my-1' onclick=\"return confirm('Apakah Anda yakin ingin menghapus produk ini?');\">Delete</a>
                                                 </td>
                                               </tr>";
                                     }

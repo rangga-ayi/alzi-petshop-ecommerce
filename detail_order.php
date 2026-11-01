@@ -47,7 +47,7 @@ echo "Data user tidak ditemukan.";
 
 
 // Mengambil order_id dengan GET
-$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : '';
+$order_id = isset($_GET['order_id']) ? htmlspecialchars(trim($_GET['order_id'])) : '';
 
 // Jika tombol konfirmasi diklik
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -207,7 +207,7 @@ function getFirstName($fullName) {
                                     btn btn-outline-warning text-black
                                     <?php elseif ($transaction_status === "success"): ?>
                                         btn btn-outline-success
-                                        <?php elseif ($transaction_status === "cancel" || "expire"): ?>
+                                        <?php elseif ($transaction_status === "cancel" || $transaction_status === "expire"): ?>
                                             btn btn-outline-danger
                                             <?php endif; ?>
                                 "> <?php echo $transaction_status ?></div>

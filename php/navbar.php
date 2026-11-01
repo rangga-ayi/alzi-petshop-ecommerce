@@ -235,17 +235,7 @@
     $resultriwayatpembeli = $stmt2->get_result();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-X7zfk0k3aWOJvdhF">
-    </script>
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-X7zfk0k3aWOJvdhF"></script>
     <style>
     .modal-body {
         font-family: Arial, sans-serif;
@@ -318,9 +308,6 @@
         margin-top: 15px;
     }
     </style>
-</head>
-
-<body>
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar">
         <div class="container-fluid">
@@ -557,16 +544,31 @@
     if (navPayButton) {
         navPayButton.addEventListener('click', function(event) {
         event.preventDefault(); // Cegah refresh halaman
-        fetch(window.location.href, {
+        if (typeof window.snap === 'undefined') {
+            alert("Modul pembayaran Midtrans gagal dimuat. Pastikan koneksi internet aktif dan matikan AdBlocker/Brave Shield untuk situs ini.");
+            return;
+        }
+
+        const checkoutEndpoint = window.location.pathname.includes('/admin/') ? '../process_checkout.php' : 'process_checkout.php';
+        fetch(checkoutEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: 'checkout=true'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP error " + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
+                    if (typeof window.snap === 'undefined') {
+                        alert("Modul pembayaran Midtrans tidak tersedia.");
+                        return;
+                    }
                     // Panggil Snap Midtrans
                     window.snap.pay(data.snap_token, {
                         onSuccess: function(result) {
@@ -580,15 +582,18 @@
                         onError: function(result) {
                             alert("Pembayaran gagal!");
                             console.log(result);
+                        },
+                        onClose: function() {
+                            console.log("Jendela pembayaran ditutup.");
                         }
                     });
                 } else {
-                    alert("Gagal memproses transaksi: " + data.message);
+                    alert("Gagal memproses transaksi: " + (data.message || data.error || 'Terjadi kesalahan'));
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal memproses transaksi. Silakan coba lagi.');
+                console.error('Checkout error:', error);
+                alert('Gagal memproses transaksi: ' + (error && error.message ? error.message : 'Silakan coba lagi.'));
             });
         });
     }
@@ -638,17 +643,4 @@
     //     searchInput.value = '';
     //     searchResults.style.display = 'none';
     // });
-    document.addEventListener('DOMContentLoaded', function() {
-        const keranjangButton = document.querySelector('#keranjangButton');
-        const modalEl = document.getElementById('keranjangModal');
-        if (keranjangButton && modalEl && typeof bootstrap !== 'undefined') {
-            const keranjangModal = new bootstrap.Modal(modalEl);
-            keranjangButton.addEventListener('click', function() {
-                keranjangModal.show();
-            });
-        }
-    });
     </script>
-</body>
-
-</html>

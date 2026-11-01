@@ -47,7 +47,7 @@ echo "Data user tidak ditemukan.";
 
 
 // Mengambil order_id dengan GET
-$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : '';
+$order_id = isset($_GET['order_id']) ? htmlspecialchars(trim($_GET['order_id'])) : '';
 
 // Jika tombol konfirmasi diklik
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
@@ -93,7 +93,7 @@ if ($stmt) {
     if ($result && $row = $result->fetch_assoc()) {
         $name = htmlspecialchars($row['name']);
         $transaction_status = htmlspecialchars($row['transaction_status']);
-        $gross_amount = htmlspecialchars($row['gross_amount']);
+        $gross_amount = rupiah($row['gross_amount']);
         $shipping_status = htmlspecialchars($row['shipping_status']);
         $shipping_status_id = intval($row['shipping_status_id']);
         $payment_time = htmlspecialchars($row['payment_time']);
@@ -184,7 +184,7 @@ function getFirstName($fullName) {
                                     btn btn-outline-warning text-black
                                     <?php elseif ($transaction_status === "success"): ?>
                                         btn btn-outline-success
-                                        <?php elseif ($transaction_status === "cancel" || "expire"): ?>
+                                        <?php elseif ($transaction_status === "cancel" || $transaction_status === "expire"): ?>
                                             btn btn-outline-danger
                                             <?php endif; ?>
                                 "> <?php echo $transaction_status ?></div>
@@ -238,39 +238,37 @@ function getFirstName($fullName) {
                                     <button type="submit" name="confirm" class="btn btn-success mt-3">Konfirmasi
                                         Pengiriman</button>
                                 </form>
-                                <?php elseif (!empty($snap_token && $transaction_status === "pending")): ?>
-                                <!-- Vertically centered scrollable modal -->
-                                <!-- Button trigger modal -->
-                                <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal"
-                                    data-bs-target="#staticBackdrop">
+                                <?php elseif (!empty($snap_token) && $transaction_status === "pending"): ?>
+                                <button type="button" id="payDetailButton" class="btn btn-primary mt-3">
                                     Bayar Sekarang
                                 </button>
-
-                                <!-- Modal -->
-                                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
-                                    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5 fw-bold" id="staticBackdropLabel">Bayar:</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="ratio ratio-4x3">
-                                                    <iframe
-                                                        src="https://app.midtrans.com/snap/v2/vtweb/<?php echo $snap_token ?>"
-                                                        allowfullscreen style="border: none;"></iframe>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const payDetailBtn = document.getElementById('payDetailButton');
+                                    if (payDetailBtn) {
+                                        payDetailBtn.addEventListener('click', function() {
+                                            if (typeof window.snap === 'undefined') {
+                                                window.open('https://app.sandbox.midtrans.com/snap/v2/vtweb/<?= $snap_token ?>', '_blank');
+                                                return;
+                                            }
+                                            window.snap.pay('<?= $snap_token ?>', {
+                                                onSuccess: function(result) {
+                                                    window.location.href = 'proses_status.php?order_id=<?= urlencode($order_id) ?>';
+                                                },
+                                                onPending: function(result) {
+                                                    location.reload();
+                                                },
+                                                onError: function(result) {
+                                                    alert('Pembayaran gagal atau dibatalkan.');
+                                                },
+                                                onClose: function() {
+                                                    console.log('Jendela pembayaran ditutup.');
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                                </script>
                                 <?php endif; ?>
                             </div>
 

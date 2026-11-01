@@ -83,9 +83,9 @@ $user_details = $conn->query("SELECT * FROM user_detail");
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="../index_a.php">Alzi Petshop [Admin]</a>
+            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">Alzi Petshop [Admin]</a>
             <div class="d-flex ms-auto">
-                <a href="tambah.php" class="btn btn-warning me-3">Tambah</a>
+                <a href="admin.php" class="btn btn-outline-secondary me-3">Kembali ke Admin</a>
             </div>
         </div>
     </nav>
@@ -107,16 +107,17 @@ $user_details = $conn->query("SELECT * FROM user_detail");
             <tbody>
                 <?php while ($row = $user_details->fetch_assoc()): ?>
                 <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo $row['jenis_kelamin']; ?></td>
-                    <td><?php echo $row['tanggal_lahir']; ?></td>
-                    <td><?php echo $row['alamat']; ?></td>
-                    <td><?php echo $row['no_telepon']; ?></td>
+                    <td><?php echo htmlspecialchars($row['id']); ?></td>
+                    <td><?php echo htmlspecialchars($row['jenis_kelamin']); ?></td>
+                    <td><?php echo htmlspecialchars($row['tanggal_lahir']); ?></td>
+                    <td><?php echo htmlspecialchars($row['alamat']); ?></td>
+                    <td><?php echo htmlspecialchars($row['no_telepon']); ?></td>
                     <td>
                         <a href="user_details.php?edit=<?php echo $row['id']; ?>" class="btn btn-warning btn-sm"
                             data-bs-toggle="modal" data-bs-target="#userDetailModal">Edit</a>
                         <a href="user_details.php?delete=<?php echo $row['id']; ?>"
-                            class="btn btn-danger btn-sm">Delete</a>
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Apakah Anda yakin ingin menghapus detail user ini?');">Delete</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>

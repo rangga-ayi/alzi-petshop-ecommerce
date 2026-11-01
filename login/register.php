@@ -5,7 +5,7 @@ include '../php/php.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nama = trim($_POST['nama']);
     $email = trim($_POST['email']);
-    $password = sha1($_POST['password']); // Enkripsi password
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $jenis_kelamin = trim($_POST['jenis_kelamin']);
     $tanggal_lahir = !empty(trim($_POST['tanggal_lahir'])) ? trim($_POST['tanggal_lahir']) : null;
     $alamat = trim($_POST['address']);

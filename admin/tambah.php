@@ -100,7 +100,7 @@ function getFirstName($fullName) {
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="../login/login_form.php">
+            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">
                 Alzi Petshop [Admin]
             </a>
             <!-- User Profile Link (jika perlu) -->
@@ -127,7 +127,7 @@ function getFirstName($fullName) {
             </div>
             <div class="mb-3">
                 <label for="price" class="form-label">Harga</label>
-                <input type="text" name="price" id="price" class="form-control" requiredautocomplete="off">
+                <input type="text" name="price" id="price" class="form-control" required autocomplete="off">
             </div>
             <div class="mb-3">
                 <label for="category" class="form-label">Kategori</label>
@@ -150,7 +150,7 @@ function getFirstName($fullName) {
             </div>
             <button type="submit" class="btn btn-success">Tambah Data</button>
         </form>
-        <a href="index_p.php" class="btn btn-warning my-3">Kembali</a>
+        <a href="products.php" class="btn btn-warning my-3">Kembali</a>
     </div>
     <!-- Footer start -->
     <footer class="text-center">

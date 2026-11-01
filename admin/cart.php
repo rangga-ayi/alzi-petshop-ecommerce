@@ -175,10 +175,7 @@
             </div>
             <div class="d-flex ms-auto">
             </div>
-            <div class="d-flex">
-                <a href="users.php" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">Add
-                    User</a>
-            </div>
+
             <div class="navbar-item">
                 <a href="../detail.php">
                     <img src="../<?php echo $foto; ?>" class="rounded-circle me-2">
@@ -232,11 +229,11 @@
             <tbody>
                 <?php while ($row = $result->fetch_assoc()) { ?>
                 <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo $row['user_name']; ?></td>
-                    <td><?php echo $row['product_name']; ?></td>
-                    <td><?php echo $row['quantity']; ?></td>
-                    <td><?php echo $row['price']; ?></td>
+                    <td><?php echo htmlspecialchars($row['id']); ?></td>
+                    <td><?php echo htmlspecialchars($row['user_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row['quantity']); ?></td>
+                    <td><?php echo htmlspecialchars(rupiah($row['price'])); ?></td>
                     <td>
                         <a href="edit_cart.php?id=<?php echo $row['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
                         <a href="?delete=<?php echo $row['id']; ?>" class="btn btn-danger btn-sm"

@@ -313,17 +313,17 @@
                         <tr>
                             <th>Nama</th>
                             <td>:</td>
-                            <td><?php echo $nama; ?></td>
+                            <td><?php echo htmlspecialchars($nama); ?></td>
                         </tr>
                         <tr>
                             <th>Email</th>
                             <td>:</td>
-                            <td><?php echo $email; ?></td>
+                            <td><?php echo htmlspecialchars($email); ?></td>
                         </tr>
                         <tr>
                             <th>Jenis Kelamin</th>
                             <td>:</td>
-                            <td><?php echo $jenis_kelamin; ?></td>
+                            <td><?php echo htmlspecialchars($jenis_kelamin); ?></td>
                         </tr>
                         <tr>
                             <th>Tanggal Lahir</th>
@@ -348,17 +348,17 @@
                         <tr>
                             <th>Alamat</th>
                             <td>:</td>
-                            <td><?php echo $alamat; ?></td>
+                            <td><?php echo htmlspecialchars($alamat); ?></td>
                         </tr>
                         <tr>
                             <th>Patokan Rumah</th>
                             <td>:</td>
-                            <td><?php echo $alamat_detail; ?></td>
+                            <td><?php echo htmlspecialchars($alamat_detail); ?></td>
                         </tr>
                         <tr>
                             <th>No. Telepon</th>
                             <td>:</td>
-                            <td><?php echo $no_telepon; ?></td>
+                            <td><?php echo htmlspecialchars($no_telepon); ?></td>
                         </tr>
                         <?php if ($has_location): ?>
                         <tr>

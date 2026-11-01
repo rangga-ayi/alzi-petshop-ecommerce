@@ -113,7 +113,6 @@
         return $parts[0];
     }
 
-    require("php/navbar.php");
     $user_id = intval($_SESSION['userid']);
 
 // Ambil informasi user dari tabel tbluser dan user_detail dengan prepared statement
@@ -205,7 +204,6 @@ if (!empty($items) && $total_price > 0) {
 }
 
 
-    $conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -297,6 +295,7 @@ if (!empty($items) && $total_price > 0) {
 
 <body>
     <script src="script/script.js"></script>
+    <?php require('php/navbar.php'); ?>
     <!-- Detail Produk -->
     <div id="container-p" class="container mt-5" style="padding-top: 1.5rem; color: black;">
         <?php if (!empty($cart_message)) echo $cart_message; ?>
@@ -455,8 +454,10 @@ if (!empty($items) && $total_price > 0) {
             beliButton.addEventListener('click', function(event) {
                 const isOpen = beliDropdown.classList.contains('show');
                 if (!isOpen) {
-                    const dropdown = new bootstrap.Dropdown(beliButton);
-                    dropdown.show();
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                        const dropdown = bootstrap.Dropdown.getOrCreateInstance(beliButton);
+                        dropdown.show();
+                    }
                 } else {
                     event.stopPropagation();
                 }
@@ -467,9 +468,11 @@ if (!empty($items) && $total_price > 0) {
             });
 
             document.addEventListener('click', function(e) {
-                if (!beliButton.contains(e.target) && !beliDropdown.contains(e.target)) {
-                    const dropdown = new bootstrap.Dropdown(beliButton);
-                    dropdown.hide();
+                if (document.body.contains(beliButton) && !beliButton.contains(e.target) && !beliDropdown.contains(e.target)) {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                        const dropdown = bootstrap.Dropdown.getInstance(beliButton);
+                        if (dropdown) dropdown.hide();
+                    }
                 }
             });
         }
@@ -527,6 +530,7 @@ if (!empty($items) && $total_price > 0) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
+    <?php if (isset($conn) && $conn) { $conn->close(); } ?>
 </body>
 
 </html>

@@ -93,7 +93,7 @@
                 if ($stmt_up->execute()) {
                     $stmt_up->close();
                     echo "<script>
-                            document.location='index.php';
+                            document.location='detail.php';
                           </script>";
                 } else {
                     $stmt_up->close();

@@ -6,49 +6,75 @@ session_start();
 include '../php/php.php';
 
 // Menangkap data yang dikirim dari form login
-$login_input = trim($_POST['login_input']); // Bisa email atau no_telepon
-$password = sha1($_POST['password']); // Mengenkripsi password
+$login_input = isset($_POST['login_input']) ? trim($_POST['login_input']) : '';
+$raw_password = isset($_POST['password']) ? $_POST['password'] : '';
 
 // Menyeleksi data user berdasarkan email atau no_telepon dengan prepared statement
 $stmt = $conn->prepare(
     "SELECT tbluser.id, tbluser.email, tbluser.password, tbluser.level, user_detail.no_telepon 
      FROM tbluser 
      LEFT JOIN user_detail ON tbluser.id = user_detail.id 
-     WHERE (tbluser.email = ? OR user_detail.no_telepon = ?) AND tbluser.password = ?"
+     WHERE tbluser.email = ? OR user_detail.no_telepon = ?"
 );
-$stmt->bind_param("sss", $login_input, $login_input, $password);
+$stmt->bind_param("ss", $login_input, $login_input);
 $stmt->execute();
-$login = $stmt->get_result();
+$result = $stmt->get_result();
 
-// Menghitung jumlah data yang ditemukan
-$cek = $login->num_rows;
+if ($result && $data = $result->fetch_assoc()) {
+    $db_hash = $data['password'];
+    $authenticated = false;
 
-// Cek apakah email atau no_telepon dengan password ditemukan pada database
-if ($cek > 0) {
-    $data = mysqli_fetch_assoc($login);
-
-    // Buat session login berdasarkan metode login (email atau no_telepon)
-    if ($login_input == $data['email']) {
-        $_SESSION['userid'] = $data['id'];
-        $_SESSION['email'] = $data['email'];
-    } elseif ($login_input == $data['no_telepon']) {
-        $_SESSION['userid'] = $data['id'];
-        $_SESSION['no_telepon'] = $data['no_telepon'];
+    // Verifikasi password hybrid: modern bcrypt atau legacy sha1
+    if (password_verify($raw_password, $db_hash)) {
+        $authenticated = true;
+        // Re-hash jika parameter/algoritma default berubah
+        if (password_needs_rehash($db_hash, PASSWORD_DEFAULT)) {
+            $new_hash = password_hash($raw_password, PASSWORD_DEFAULT);
+            $stmt_re = $conn->prepare("UPDATE tbluser SET password = ? WHERE id = ?");
+            $stmt_re->bind_param("si", $new_hash, $data['id']);
+            $stmt_re->execute();
+            $stmt_re->close();
+        }
+    } elseif (sha1($raw_password) === $db_hash) {
+        $authenticated = true;
+        // Auto-upgrade dari sha1 ke bcrypt
+        $new_hash = password_hash($raw_password, PASSWORD_DEFAULT);
+        $stmt_upg = $conn->prepare("UPDATE tbluser SET password = ? WHERE id = ?");
+        $stmt_upg->bind_param("si", $new_hash, $data['id']);
+        $stmt_upg->execute();
+        $stmt_upg->close();
     }
 
-    $_SESSION['level'] = $data['level'];
+    if ($authenticated) {
+        // Regenerasi ID session untuk mencegah session fixation
+        session_regenerate_id(true);
 
-    // Alihkan ke halaman sesuai level user
-    if ($data['level'] == "admin") {
-        header("Location: ../admin/admin.php");
-    } elseif ($data['level'] == "penjual") {
-        header("Location: ../index_p.php");
-    } elseif ($data['level'] == "pembeli") {
-        header("Location: ../index.php");
-    } else {
-        header("Location: login_form.php?error=Invalid user level");
+        $_SESSION['userid'] = $data['id'];
+        $_SESSION['level'] = $data['level'];
+
+        if ($login_input == $data['email']) {
+            $_SESSION['email'] = $data['email'];
+        } else {
+            $_SESSION['no_telepon'] = $data['no_telepon'];
+        }
+
+        // Alihkan ke halaman sesuai level user
+        if ($data['level'] == "admin") {
+            header("Location: ../admin/admin.php");
+        } elseif ($data['level'] == "penjual") {
+            header("Location: ../index_p.php");
+        } elseif ($data['level'] == "pembeli") {
+            header("Location: ../index.php");
+        } else {
+            header("Location: login_form.php?error=Invalid user level");
+        }
+        exit;
     }
-} else {
-    header("Location: login_form.php?error=Email atau No Telepon atau Password salah");
 }
+
+if ($stmt) {
+    $stmt->close();
+}
+header("Location: login_form.php?error=Email atau No Telepon atau Password salah");
+exit;
 ?>

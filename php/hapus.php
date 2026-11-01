@@ -16,7 +16,11 @@
 
         if ($stmt->execute()) {
             $stmt->close();
-            header("Location: ../index_p.php");
+            if (isset($_SESSION['level']) && $_SESSION['level'] === 'admin') {
+                header("Location: ../admin/products.php");
+            } else {
+                header("Location: ../index_p.php");
+            }
             exit;
         } else {
             echo "Error: " . $conn->error;

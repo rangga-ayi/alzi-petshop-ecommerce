@@ -7,8 +7,8 @@ if (!isset($_SESSION['userid'])) {
     exit;
 }
 
-$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
-$new_status = "Success";
+$order_id = isset($_GET['order_id']) ? htmlspecialchars(trim($_GET['order_id'])) : '';
+$new_status = "success";
 $new_shipping_status = 2;
 
 // Mulai transaksi untuk memastikan konsistensi data
@@ -44,8 +44,10 @@ try {
     // Commit transaksi
     $conn->commit();
 
-    // Redirect jika berhasil
-    if (isset($_SERVER['HTTP_REFERER'])) {
+    if (!empty($order_id)) {
+        header('Location: detail_riwayat.php?order_id=' . urlencode($order_id));
+        exit;
+    } else {
         header('Location: index.php');
         exit;
     }

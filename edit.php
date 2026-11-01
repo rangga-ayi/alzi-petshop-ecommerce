@@ -176,7 +176,7 @@ function getFirstName($fullName) {
             <button type="submit" class="btn btn-success">Simpan Perubahan</button>
         </form>
         <a href="index_p.php" class="btn btn-warning my-2 me-1">Kembali</a>
-        <a href="php/hapus.php?product_id=<?= $product_id ?>" class="btn btn-danger my-2">Hapus</a>
+        <a href="php/hapus.php?product_id=<?= $product_id ?>" class="btn btn-danger my-2" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">Hapus</a>
     </div>
     <!-- Footer start -->
     <footer class="text-center">

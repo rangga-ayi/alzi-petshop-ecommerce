@@ -117,7 +117,7 @@ function getFirstName($fullName) {
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="../login/login_form.php">
+            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">
                 Alzi Petshop [Admin]
             </a>
             <!-- User Profile Link (jika perlu) -->
@@ -169,7 +169,7 @@ function getFirstName($fullName) {
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Foto Produk</label>
-                <input type="file" name="image" id="image" class="form-control" accept="image/*" required
+                <input type="file" name="image" id="image" class="form-control" accept="image/*"
                     autocomplete="off">
                 <!-- Menampilkan gambar lama jika ada -->
                 <?php if (!empty($productd['image'])): ?>
@@ -178,8 +178,8 @@ function getFirstName($fullName) {
             </div>
             <button type="submit" class="btn btn-success">Simpan Perubahan</button>
         </form>
-        <a href="product_a.php" class="btn btn-warning my-3">Kembali</a>
-        <a href="../php/hapus.php?product_id=<?= $product_id ?>" class="btn btn-danger my-3">Hapus</a>
+        <a href="products.php" class="btn btn-warning my-3">Kembali</a>
+        <a href="../php/hapus.php?product_id=<?= $product_id ?>" class="btn btn-danger my-3" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">Hapus</a>
     </div>
     <!-- Footer start -->
     <footer class="text-center">

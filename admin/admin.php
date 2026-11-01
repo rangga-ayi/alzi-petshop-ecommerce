@@ -45,21 +45,38 @@ if ($result && $result->num_rows > 0) {
 $stmt_admin->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = intval($_POST['id']);
+    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
     $nama = trim($_POST['nama']);
     $email_baru = trim($_POST['email']);
-    $password = !empty($_POST['password']) ? sha1($_POST['password']) : null;
+    $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
     $level = trim($_POST['level']);
 
-    if ($password) {
-        $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ?, password = ? WHERE id = ?");
-        $stmt_up->bind_param("ssssi", $nama, $email_baru, $level, $password, $id);
+    if ($id > 0) {
+        if ($password) {
+            $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ?, password = ? WHERE id = ?");
+            $stmt_up->bind_param("ssssi", $nama, $email_baru, $level, $password, $id);
+        } else {
+            $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ? WHERE id = ?");
+            $stmt_up->bind_param("sssi", $nama, $email_baru, $level, $id);
+        }
+        $stmt_up->execute();
+        $stmt_up->close();
     } else {
-        $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ? WHERE id = ?");
-        $stmt_up->bind_param("sssi", $nama, $email_baru, $level, $id);
+        $default_pass = $password ? $password : password_hash('123456', PASSWORD_DEFAULT);
+        $stmt_in = $conn->prepare("INSERT INTO tbluser (nama, email, password, level) VALUES (?, ?, ?, ?)");
+        $stmt_in->bind_param("ssss", $nama, $email_baru, $default_pass, $level);
+        if ($stmt_in->execute()) {
+            $new_user_id = $stmt_in->insert_id;
+            $stmt_in->close();
+            $default_foto = 'imgs/user/default.png';
+            $stmt_dt = $conn->prepare("INSERT INTO user_detail (id, foto) VALUES (?, ?)");
+            $stmt_dt->bind_param("is", $new_user_id, $default_foto);
+            $stmt_dt->execute();
+            $stmt_dt->close();
+        } else {
+            $stmt_in->close();
+        }
     }
-    $stmt_up->execute();
-    $stmt_up->close();
 }
 
 // Handle Delete
@@ -225,8 +242,7 @@ $users = $conn->query("SELECT * FROM tbluser");
             <div class="d-flex ms-auto">
             </div>
             <div class="d-flex">
-                <a href="users.php" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">Add
-                    User</a>
+                <a href="#" id="addUserBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">Add User</a>
             </div>
             <div class="navbar-item">
                 <a href="../detail.php">
@@ -250,14 +266,15 @@ $users = $conn->query("SELECT * FROM tbluser");
             <tbody>
                 <?php while ($row = $users->fetch_assoc()): ?>
                 <tr>
-                    <td><?php echo $row['nama']; ?></td>
-                    <td><?php echo $row['email']; ?></td>
-                    <td><?php echo $row['level']; ?></td>
+                    <td><?php echo htmlspecialchars($row['nama']); ?></td>
+                    <td><?php echo htmlspecialchars($row['email']); ?></td>
+                    <td><?php echo htmlspecialchars($row['level']); ?></td>
                     <td>
-                        <a href="users.php?edit=<?php echo $row['id']; ?>" class="btn btn-warning btn-sm edit-btn"
+                        <a href="#" class="btn btn-warning btn-sm edit-btn"
                             data-id="<?php echo $row['id']; ?>" data-bs-toggle="modal"
                             data-bs-target="#userModal">Edit</a>
-                        <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-danger btn-sm">Delete</a>
+                        <a href="admin.php?delete=<?php echo $row['id']; ?>" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');">Delete</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -322,13 +339,25 @@ $users = $conn->query("SELECT * FROM tbluser");
 
     <script>
     document.addEventListener("DOMContentLoaded", function() {
+        const addBtn = document.getElementById('addUserBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                document.getElementById('userModalLabel').textContent = 'Add User';
+                document.querySelector("input[name='id']").value = '';
+                document.getElementById('nama').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('level').value = 'pembeli';
+            });
+        }
+
         // Ambil semua tombol Edit
         const editButtons = document.querySelectorAll(".edit-btn");
 
-        // Tambahkan event listener pada setiap tombol Edit
         editButtons.forEach((btn) => {
             btn.addEventListener("click", function() {
                 const userId = this.getAttribute("data-id");
+                document.getElementById('userModalLabel').textContent = 'Edit User';
 
                 // Kirim AJAX request untuk mendapatkan data user
                 fetch(`get_user.php?id=${userId}`)
@@ -337,8 +366,7 @@ $users = $conn->query("SELECT * FROM tbluser");
                         // Isi modal dengan data user
                         document.getElementById("nama").value = data.nama;
                         document.getElementById("email").value = data.email;
-                        document.getElementById("password").value =
-                            ""; // Kosongkan untuk keamanan
+                        document.getElementById("password").value = "";
                         document.getElementById("level").value = data.level;
                         document.querySelector("input[name='id']").value = data.id;
                     })

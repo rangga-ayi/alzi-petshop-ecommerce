@@ -168,30 +168,25 @@
                         <td><?= htmlspecialchars($row['name']) ?></td>
                         <td><?= htmlspecialchars($row['order_id']) ?></td>
                         <td><?= htmlspecialchars($row['transaction_status']) ?></td>
-                        <td><?= htmlspecialchars($row['gross_amount']) ?></td>
-                        <td><?= htmlspecialchars($row['shipping_status']) ?></td>
+                        <td><?= htmlspecialchars(rupiah($row['gross_amount'])) ?></td>
+                        <td><?= htmlspecialchars($row['shipping_status'] ?? '-') ?></td>
                         <td><?= htmlspecialchars($row['payment_time']) ?></td>
                         <td><?= htmlspecialchars($row['update_time']) ?></td>
                         <?php 
                                 $item_details = json_decode($row['item_details'], true);
-                                if ($item_details): ?>
-                        <td>
-                            <?php 
-                                $item_names = array_map(function($item) {
-                                    return htmlspecialchars($item['name']);
-                                }, $item_details);
-                                echo implode(", ", $item_names);
-                                ?>
-                        </td>
-                        <td>
-                            <?php 
-                                $item_quantities = array_map(function($item) {
-                                    return htmlspecialchars($item['quantity']);
-                                }, $item_details);
-                                echo implode(", ", $item_quantities);
-                                ?>
-                        </td>
-                        <?php endif ?>
+                                $item_names = [];
+                                $item_quantities = [];
+                                if ($item_details && is_array($item_details)) {
+                                    $item_names = array_map(function($item) {
+                                        return htmlspecialchars($item['name']);
+                                    }, $item_details);
+                                    $item_quantities = array_map(function($item) {
+                                        return htmlspecialchars($item['quantity']);
+                                    }, $item_details);
+                                }
+                        ?>
+                        <td><?= !empty($item_names) ? implode(", ", $item_names) : '-' ?></td>
+                        <td><?= !empty($item_quantities) ? implode(", ", $item_quantities) : '-' ?></td>
                         <td>
                             <a class="btn btn-danger btn-sm" href="?delete=<?= $row['transaction_id'] ?>"
                                 onclick="return confirm('Are you sure you want to delete this transaction?');">Delete</a>

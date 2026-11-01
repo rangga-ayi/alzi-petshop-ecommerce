@@ -41,9 +41,9 @@
 
     // Menangkap data yang dikirim dari form
     if (isset($_POST["submit"])) {
-        $old_password = mysqli_real_escape_string($conn, $_POST['old_password']);
-        $new_password = mysqli_real_escape_string($conn, $_POST['new_password']);
-        $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+        $old_password = $_POST['old_password'];
+        $new_password = $_POST['new_password'];
+        $confirm_password = $_POST['confirm_password'];
 
         // Validasi password lama dengan prepared statement
         $stmt_pw = $conn->prepare("SELECT password FROM tbluser WHERE id = ?");
@@ -53,17 +53,24 @@
         $row = $res_pw ? $res_pw->fetch_assoc() : null;
         $stmt_pw->close();
 
-        if ($row && sha1($old_password) === $row['password']) {
+        $old_matches = false;
+        if ($row) {
+            if (password_verify($old_password, $row['password']) || sha1($old_password) === $row['password']) {
+                $old_matches = true;
+            }
+        }
+
+        if ($old_matches) {
             if ($new_password === $confirm_password) {
-                $new_password_encrypted = sha1($new_password);
+                $new_password_hashed = password_hash($new_password, PASSWORD_DEFAULT);
                 $stmt_up = $conn->prepare("UPDATE tbluser SET password = ? WHERE id = ?");
-                $stmt_up->bind_param("si", $new_password_encrypted, $userid);
+                $stmt_up->bind_param("si", $new_password_hashed, $userid);
 
                 if ($stmt_up->execute()) {
                     $stmt_up->close();
                     echo "<script>
                             alert('Kata sandi berhasil diubah');
-                            document.location='index.php';
+                            document.location='detail.php';
                           </script>";
                 } else {
                     echo "<script>

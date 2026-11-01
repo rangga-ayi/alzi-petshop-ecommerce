@@ -105,7 +105,7 @@
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="login/login_form.php">
+            <a class="navbar-brand ms-2 font-weight-bold" href="index_p.php">
                 Alzi Petshop [Penjual]
             </a>
             <!-- User Profile Link (jika perlu) -->
@@ -132,7 +132,7 @@
             </div>
             <div class="mb-3">
                 <label for="price" class="form-label">Harga</label>
-                <input type="text" name="price" id="price" class="form-control" requiredautocomplete="off">
+                <input type="text" name="price" id="price" class="form-control" required autocomplete="off">
             </div>
             <div class="mb-3">
                 <label for="category" class="form-label">Kategori</label>

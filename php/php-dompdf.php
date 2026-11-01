@@ -10,11 +10,11 @@ use Dompdf\Dompdf;
 ob_start();
 
 // Validasi `order_id` dari GET
-$order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
-$user_id = $_SESSION['userid'];
+$order_id = isset($_GET['order_id']) ? htmlspecialchars(trim($_GET['order_id'])) : '';
+$user_id = intval($_SESSION['userid']);
 
 // Pastikan `order_id` valid
-if ($order_id <= 0) {
+if (empty($order_id)) {
     die("Invalid Order ID.");
 }
 
@@ -49,7 +49,7 @@ $queryriwayat = "
 ";
 
 $stmt = $conn->prepare($queryriwayat);
-$stmt->bind_param("i", $order_id);
+$stmt->bind_param("s", $order_id);
 $stmt->execute();
 $resultriwayat = $stmt->get_result();
 
