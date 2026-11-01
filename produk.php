@@ -59,7 +59,7 @@
         $satuan_p = $productd['satuan'];
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quantity']) && !isset($_POST['checkout']) && !isset($_POST['buy_now'])) {
         // Ambil data dari form
         $user_id = $_SESSION['userid'];
         $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
@@ -131,7 +131,7 @@ $result_cart = mysqli_query($conn, $query_cart);
 
 $total_price = 0; // Inisialisasi total_price
 $items = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['buy_now']) || (isset($_POST['action']) && $_POST['action'] === 'buy_now'))) {
     $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
     $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
 
@@ -456,23 +456,25 @@ if (!empty($items) && $total_price > 0) {
         });
 
     var payButton = document.getElementById('pay-buttons');
-    payButton.addEventListener('click', function() {
-        window.snap.pay('<?= $snap_token; ?>', {
-            onSuccess: function(result) {
-                alert("Pembayaran berhasil!");
-                console.log(result);
-                window.location.href = "success.php";
-            },
-            onPending: function(result) {
-                alert("Menunggu pembayaran.");
-                console.log(result);
-            },
-            onError: function(result) {
-                alert("Pembayaran gagal!");
-                console.log(result);
-            }
+    if (payButton) {
+        payButton.addEventListener('click', function() {
+            window.snap.pay('<?= $snap_token; ?>', {
+                onSuccess: function(result) {
+                    alert("Pembayaran berhasil!");
+                    console.log(result);
+                    window.location.href = "success.php";
+                },
+                onPending: function(result) {
+                    alert("Menunggu pembayaran.");
+                    console.log(result);
+                },
+                onError: function(result) {
+                    alert("Pembayaran gagal!");
+                    console.log(result);
+                }
+            });
         });
-    });
+    }
    
     </script>
     <!-- End Js Search -->
