@@ -237,6 +237,11 @@
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-X7zfk0k3aWOJvdhF"></script>
     <style>
+    .navbar-item img {
+        height: 30px !important;
+        width: 30px !important;
+        object-fit: cover;
+    }
     .modal-body {
         font-family: Arial, sans-serif;
     }
