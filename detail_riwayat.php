@@ -137,13 +137,6 @@ function getFirstName($fullName) {
         overflow-y: auto;
     }
 
-    .navbar {
-        position: sticky;
-        z-index: 1000;
-        width: 100%;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: white;
-    }
 
     iframe {
         width: 100%;
@@ -157,11 +150,11 @@ function getFirstName($fullName) {
     </style>
 </head>
 
-<body class="mt-5">
+<body>
     <!-- Navbar start -->
     <?php require('php/navbar.php'); ?>
     <!-- Navbar End -->
-    <div class="container vh-100 mt-5">
+    <div class="container my-5 pt-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
