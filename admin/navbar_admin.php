@@ -1,7 +1,7 @@
 <?php
 $current_admin_page = basename($_SERVER['PHP_SELF']);
-$admin_name = isset($nama) ? getFirstName($nama) : 'Admin';
-$admin_photo = !empty($foto) ? '../' . ltrim($foto, '../') : '../imgs/user/default.png';
+$admin_name = isset($nama) ? (function_exists('getFirstName') ? getFirstName($nama) : explode(' ', $nama)[0]) : 'Admin';
+$admin_photo = !empty($foto) ? (str_starts_with($foto, '../') ? $foto : '../' . ltrim($foto, '/\\')) : '../imgs/user/default.png';
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-2 shadow-sm">
