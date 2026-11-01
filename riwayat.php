@@ -214,7 +214,7 @@ if (!empty($all_product_ids)) {
         <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
             <div>
                 <h2 class="fw-bold mb-1">Riwayat Pesanan</h2>
-                <p class="text-muted small mb-0">Pantau status transaksi dan pengiriman belanjaan Anda</p>
+                <p class="text-secondary small mb-0 fw-medium">Pantau status transaksi dan pengiriman belanjaan Anda</p>
             </div>
             <a href="index.php" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Belanja Lagi
@@ -278,7 +278,7 @@ if (!empty($all_product_ids)) {
                             <span class="badge bg-light text-dark border px-2 py-1">
                                 <i class="bi bi-receipt"></i> Belanja
                             </span>
-                            <span class="text-muted small">
+                            <span class="text-secondary small fw-medium">
                                 <?= !empty($date_display) ? date('d M Y, H:i', strtotime($date_display)) : '-' ?>
                             </span>
                             <span class="text-muted small d-none d-sm-inline">•</span>
@@ -310,7 +310,7 @@ if (!empty($all_product_ids)) {
                                 <img src="<?= htmlspecialchars($first_item_img) ?>" alt="Produk" class="product-thumb">
                                 <div class="flex-grow-1">
                                     <h6 class="fw-bold mb-1 text-dark"><?= htmlspecialchars($first_item['name']) ?></h6>
-                                    <p class="text-muted small mb-1">
+                                    <p class="text-secondary small mb-1 fw-medium">
                                         <?= htmlspecialchars($first_item['quantity']) ?> barang x <?= rupiah($first_item['price']) ?>
                                     </p>
                                     <?php if ($other_count > 0): ?>
@@ -337,7 +337,7 @@ if (!empty($all_product_ids)) {
                     <!-- Footer Kartu -->
                     <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
                         <div>
-                            <div class="text-muted small">
+                            <div class="text-secondary small fw-medium">
                                 Total Belanja <?= ($shipping_fee > 0) ? "(Termasuk Ongkir " . rupiah($shipping_fee) . ")" : "" ?>:
                             </div>
                             <span class="fs-5 fw-bold text-dark"><?= rupiah($order['gross_amount']) ?></span>

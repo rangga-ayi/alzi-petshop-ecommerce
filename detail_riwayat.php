@@ -289,7 +289,7 @@ function getFirstName($fullName) {
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-center text-muted"><?= rupiah($item_price) ?></td>
+                                    <td class="text-center text-secondary fw-medium"><?= rupiah($item_price) ?></td>
                                     <td class="text-center"><?= $item_qty ?></td>
                                     <td class="text-end fw-semibold"><?= rupiah($item_subtotal) ?></td>
                                 </tr>
@@ -306,25 +306,33 @@ function getFirstName($fullName) {
                 <div class="row g-3">
                     <!-- Info Penerima -->
                     <div class="col-md-6">
-                        <div class="border rounded-3 p-3 h-100 bg-white">
-                            <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-geo-alt me-1"></i> Alamat Pengiriman</h6>
-                            <p class="mb-1 fw-bold text-dark"><?= $name ?></p>
-                            <p class="mb-1 text-muted small"><i class="bi bi-telephone me-1"></i> <?= !empty($buyer_phone) ? htmlspecialchars($buyer_phone) : '-' ?></p>
-                            <p class="mb-0 text-muted small"><i class="bi bi-house me-1"></i> <?= !empty($buyer_address) ? htmlspecialchars($buyer_address) : 'Alamat sesuai titik koordinat GPS' ?></p>
+                        <div class="border rounded-3 p-3 h-100 bg-white shadow-xs">
+                            <h6 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-geo-alt-fill text-primary"></i> Alamat Pengiriman
+                            </h6>
+                            <p class="mb-1 fw-bold text-dark fs-6"><?= $name ?></p>
+                            <p class="mb-1 text-secondary" style="font-size: 0.92rem; line-height: 1.5; font-weight: 450;">
+                                <i class="bi bi-telephone text-muted me-1"></i> <?= !empty($buyer_phone) ? htmlspecialchars($buyer_phone) : '-' ?>
+                            </p>
+                            <p class="mb-0 text-secondary" style="font-size: 0.92rem; line-height: 1.5; font-weight: 450;">
+                                <i class="bi bi-house text-muted me-1"></i> <?= !empty($buyer_address) ? htmlspecialchars($buyer_address) : 'Alamat sesuai titik koordinat GPS' ?>
+                            </p>
                         </div>
                     </div>
 
                     <!-- Ringkasan Biaya -->
                     <div class="col-md-6">
-                        <div class="border rounded-3 p-3 h-100 bg-white">
-                            <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-receipt-cutoff me-1"></i> Rincian Pembayaran</h6>
-                            <div class="d-flex justify-content-between text-muted small mb-2">
+                        <div class="border rounded-3 p-3 h-100 bg-white shadow-xs">
+                            <h6 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-receipt-cutoff text-primary"></i> Rincian Pembayaran
+                            </h6>
+                            <div class="d-flex justify-content-between text-secondary mb-2" style="font-size: 0.92rem; font-weight: 450;">
                                 <span>Total Harga Barang</span>
-                                <span><?= rupiah($subtotal_products) ?></span>
+                                <span class="fw-medium text-dark"><?= rupiah($subtotal_products) ?></span>
                             </div>
-                            <div class="d-flex justify-content-between text-muted small mb-2">
+                            <div class="d-flex justify-content-between text-secondary mb-2" style="font-size: 0.92rem; font-weight: 450;">
                                 <span>Ongkos Kirim</span>
-                                <span><?= rupiah($shipping_fee) ?></span>
+                                <span class="fw-medium text-dark"><?= rupiah($shipping_fee) ?></span>
                             </div>
                             <hr class="my-2">
                             <div class="d-flex justify-content-between fw-bold fs-5 text-dark">
