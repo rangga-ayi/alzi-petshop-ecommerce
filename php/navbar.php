@@ -161,24 +161,6 @@
         }
     }
 
-
-    $queryriwayatpembeli = "
-        SELECT 
-        t.*, 
-        u.nama AS nama_user,
-        ss.status_pengiriman AS shipping_status 
-        FROM transactions t
-        LEFT JOIN tbluser u ON t.user_id = u.id
-        LEFT JOIN shipping_detail sd ON t.order_id = sd.order_id
-        LEFT JOIN shipping_status ss ON sd.status_pengiriman = ss.id
-        WHERE t.transaction_status='success'
-    ";
-
-    // Gunakan prepared statement untuk queryriwayatpembeli
-    $stmt2 = $conn->prepare($queryriwayatpembeli);
-    $stmt2->execute();
-    $resultriwayatpembeli = $stmt2->get_result();
-
     // Hitung pesanan masuk yang perlu diproses penjual
     $pending_orders_count = 0;
     if ($user_level === 'penjual') {
@@ -313,7 +295,7 @@
                 <?php endif; ?>
                 <?php endif; ?>
                 <?php if ($user_level == 'penjual'): ?>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#riwayatModalPembeli" id="riwayatLinkPembeli" title="Pesanan Masuk (Fulfillment Toko)" class="position-relative me-3 d-inline-block">
+                <a href="pesanan.php" id="riwayatLinkPembeli" title="Pesanan Masuk (Fulfillment Toko)" class="position-relative me-3 d-inline-block">
                     <img src="imgs/riwayat.jpg" alt="Pesanan Masuk">
                     <?php if ($pending_orders_count > 0): ?>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
@@ -381,82 +363,6 @@
         </div>
     </div>
     <!-- End keranjang -->
-
-    <!-- Modal Riwayat Penjual -->
-    <div class="modal fade" id="riwayatModalPembeli" tabindex="-1" aria-labelledby="riwayatModalLabelPembeli"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="riwayatModalLabelPembeli">
-                        <i class="bi bi-box-seam text-warning"></i> Pesanan Masuk (Fulfillment Toko)
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Nama Pelanggan</th>
-                                    <th>Nama Barang</th>
-                                    <th>Quantity</th>
-                                    <th>Order ID</th>
-                                    <th>Harga</th>
-                                    <th>Status Pembayaran</th>
-                                    <th>Waktu Pembayaran</th>
-                                    <th>Status Pengiriman</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($resultriwayatpembeli && $resultriwayatpembeli->num_rows > 0): ?>
-                                <?php while ($row = $resultriwayatpembeli->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($row['nama_user']); ?></td>
-                                    <?php 
-                                            $item_details = json_decode($row['item_details'], true);
-                                            if ($item_details): ?>
-                                    <td>
-                                        <?php 
-                                                    $item_names = array_map(function($item) {
-                                                        return htmlspecialchars($item['name']);
-                                                    }, $item_details);
-                                                    echo implode(", ", $item_names);
-                                                    ?>
-                                    </td>
-                                    <td>
-                                        <?php 
-                                                    $item_quantities = array_map(function($item) {
-                                                        return htmlspecialchars($item['quantity']);
-                                                    }, $item_details);
-                                                    echo implode(", ", $item_quantities);
-                                                    ?>
-                                    </td>
-                                    <?php else: ?>
-                                    <td>No items found</td>
-                                    <?php endif; ?>
-                                    <td><?= htmlspecialchars($row['order_id']); ?></td>
-                                    <td><?= htmlspecialchars(rupiah($row['gross_amount'])); ?></td>
-                                    <td><?= htmlspecialchars($row['transaction_status']); ?></td>
-                                    <td><?= htmlspecialchars($row['payment_time']); ?></td>
-                                    <td><a href="detail_order.php?order_id=<?php echo $row['order_id']; ?>"
-                                            class="btn btn-primary">Detail</a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                                <?php else: ?>
-                                <tr>
-                                    <td colspan="8" class="text-center">No transactions found</td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
     const navPayButton = document.getElementById('pay-button');
     if (navPayButton) {

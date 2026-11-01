@@ -206,8 +206,8 @@ function getFirstName($fullName) {
     <main class="container my-5 pt-4" style="max-width: 900px;">
         <!-- Tombol Kembali -->
         <div class="mb-3">
-            <a href="index_p.php" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Kembali ke Dashboard Penjual
+            <a href="pesanan.php" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Kembali ke Pesanan Masuk
             </a>
         </div>
 
@@ -374,8 +374,8 @@ function getFirstName($fullName) {
 
             <!-- Footer Kartu -->
             <div class="card-footer bg-white border-top p-3 p-md-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <a href="index_p.php" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
+                <a href="pesanan.php" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Pesanan Masuk
                 </a>
                 <div>
                     <?php if ($transaction_status === 'success' || $transaction_status === 'settlement'): ?>

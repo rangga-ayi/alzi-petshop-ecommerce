@@ -266,6 +266,7 @@ ALTER TABLE `products`
 --
 ALTER TABLE `shipping_detail`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_order_shipping` (`order_id`),
   ADD KEY `order_id` (`order_id`),
   ADD KEY `status_pengiriman` (`status_pengiriman`);
 
