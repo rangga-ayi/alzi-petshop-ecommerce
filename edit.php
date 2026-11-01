@@ -70,6 +70,7 @@ $productd = mysqli_fetch_assoc($data);
 if ($result && $result->num_rows > 0) {
     $nama_p = $productd['name'];
     $deskripsi_p = $productd['description'];
+    $image_p = $productd['image'];
     $harga_p = $productd['price'];
     $category_p = $productd['category'];
     $satuan_p = $productd['satuan'];
@@ -88,28 +89,30 @@ function getFirstName($fullName) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Metadata -->
+    <?php include('metadata.php'); ?>
     <title>Tambah Data</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
     <style>
+    .navbar-brand {
+        display: inline !important;
+    }
+
+    #tambah {
+        display: none;
+    }
+
+    .container {
+        padding-top: 5rem;
+    }
+
+    @media (max-width: 321px) {
         .navbar-brand {
-            display: inline !important;
+            font-size: 17px;
         }
-
-        #tambah {
-            display: none;
-        }
-
-        .container {
-            padding-top: 5rem;
-        }
-
-        @media (max-width: 321px) {
-            .navbar-brand {
-                font-size: 17px;
-            }
-        }
+    }
     </style>
 </head>
 
@@ -158,8 +161,7 @@ function getFirstName($fullName) {
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Foto Produk</label>
-                <input type="file" name="image" id="image" class="form-control" accept="image/*" required
-                    autocomplete="off">
+                <input type="file" name="image" id="image" class="form-control" accept="image/*" autocomplete="off">
                 <!-- Menampilkan gambar lama jika ada -->
                 <?php if (!empty($productd['image'])): ?>
                 <img src="<?= $productd['image'] ?>" alt="Gambar Produk" width="100" class="mt-2">

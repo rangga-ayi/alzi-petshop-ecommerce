@@ -42,6 +42,11 @@
     $result = mysqli_query($conn, $query);
     $user_detail = mysqli_fetch_assoc($result);
     $old_photo_path = $user_detail['foto'];
+    // Tentukan foto default jika $old_photo_path kosong atau null
+    $foto_default = 'imgs/user/default.png';
+    if (empty($old_photo_path)) {
+        $old_photo_path = $foto_default;
+    }
 
     // Fungsi untuk membersihkan email menjadi nama file yang valid
     function sanitize_filename($filename) {
@@ -59,7 +64,6 @@
         // Cek apakah file gambar adalah gambar asli atau bukan
         $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
         if ($check !== false) {
-            echo "File is an image - " . $check["mime"] . ".";
             $uploadOk = 1;
         } else {
             echo "File is not an image.";
@@ -85,8 +89,6 @@
         // Jika semua cek lolos, coba upload file
         } else {
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-                echo "The file ". htmlspecialchars(basename($_FILES["fileToUpload"]["name"])) . " has been uploaded.";
-                
                 // Hapus file foto lama jika ada
                 if ($old_photo_path && file_exists($old_photo_path)) {
                     if ($old_photo_path =! "/imgs/user/default.png") {
@@ -98,7 +100,6 @@
                 $sql = "UPDATE user_detail SET foto='$target_file' WHERE id='$userid'";
                 if (mysqli_query($conn, $sql)) {
                     echo "<script>
-                            alert('Foto profil berhasil diubah');
                             document.location='index.php';
                           </script>";
                 } else {
@@ -126,6 +127,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Metadata -->
+    <?php include('metadata.php'); ?>
     <title>Ubah Foto Profil</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"

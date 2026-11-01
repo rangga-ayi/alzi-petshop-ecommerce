@@ -12,7 +12,7 @@
     $user_id = $_SESSION['userid'];
 
     // Query untuk mengambil data dari kedua tabel
-    $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
+    $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.alamat_detail, d.no_telepon 
             FROM tbluser u 
             LEFT JOIN user_detail d ON u.id = d.id 
             WHERE u.id = '$userid'";
@@ -28,9 +28,23 @@
         $jenis_kelamin = $row['jenis_kelamin'];
         $tanggal_lahir = $row['tanggal_lahir'];
         $alamat = $row['alamat'];
+        $alamat_detail = $row['alamat_detail'];
         $no_telepon = $row['no_telepon'];
     } else {
         echo "Data user tidak ditemukan.";
+    }
+
+    // Ambil koordinat dari detail_address untuk preview peta
+    $has_location = false;
+    $user_lat = 0;
+    $user_lon = 0;
+    $res_addr = mysqli_query($conn, "SELECT latitude, longitude FROM detail_address WHERE user_id = '$userid'");
+    if ($res_addr && $row_addr = mysqli_fetch_assoc($res_addr)) {
+        if (!empty($row_addr['latitude']) && !empty($row_addr['longitude'])) {
+            $user_lat = floatval($row_addr['latitude']);
+            $user_lon = floatval($row_addr['longitude']);
+            $has_location = true;
+        }
     }
 
     //Nama Depan
@@ -53,6 +67,9 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Leaflet OpenStreetMap -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <!-- My Style -->
     <link rel="stylesheet" href="css/bootstrap_style.css">
     <link rel="stylesheet" href="css/style.css">
@@ -70,7 +87,7 @@
     #tambah {
         display: none;
     }
-    
+
     .container {
         width: 100%;
         height: 100%;
@@ -299,11 +316,6 @@
                             <td><?php echo $email; ?></td>
                         </tr>
                         <tr>
-                            <th>Level</th>
-                            <td>:</td>
-                            <td><?php echo $level; ?></td>
-                        </tr>
-                        <tr>
                             <th>Jenis Kelamin</th>
                             <td>:</td>
                             <td><?php echo $jenis_kelamin; ?></td>
@@ -334,10 +346,24 @@
                             <td><?php echo $alamat; ?></td>
                         </tr>
                         <tr>
+                            <th>Patokan Rumah</th>
+                            <td>:</td>
+                            <td><?php echo $alamat_detail; ?></td>
+                        </tr>
+                        <tr>
                             <th>No. Telepon</th>
                             <td>:</td>
                             <td><?php echo $no_telepon; ?></td>
                         </tr>
+                        <?php if ($has_location): ?>
+                        <tr>
+                            <th>Preview Lokasi</th>
+                            <td>:</td>
+                            <td>
+                                <div id="map-preview" style="height: 220px; width: 100%; border-radius: 8px; border: 1px solid #ddd;"></div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -349,6 +375,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
+    <?php if ($has_location): ?>
+    <script>
+        var previewMap = L.map('map-preview').setView([<?= $user_lat ?>, <?= $user_lon ?>], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(previewMap);
+        var clickIcon = L.icon({
+            iconUrl: 'imgs/marker/klik_marker.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+        L.marker([<?= $user_lat ?>, <?= $user_lon ?>], { icon: clickIcon })
+            .addTo(previewMap)
+            .bindPopup('<?= htmlspecialchars($alamat ? $alamat : "Lokasi Saya") ?>')
+            .openPopup();
+    </script>
+    <?php endif; ?>
 </body>
 
 </html>

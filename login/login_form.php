@@ -1,7 +1,7 @@
 <!-- Seesion Start -->
 <?php
     session_start();
-    if (isset($_SESSION['email'])) {
+    if (isset($_SESSION['email']) || isset($_SESSION['no_telepon'])) {
         if ($_SESSION['level'] == "admin") {
             header("Location: ../admin/admin.php");
         } elseif ($_SESSION['level'] == "penjual") {
@@ -71,8 +71,8 @@
                 ?>
                 <form action="login_proses.php" method="post">
                     <div class="form-group mb-3">
-                        <label for="email" class="form-label">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="login_input" class="form-label">Email atau No. Telpon:</label>
+                        <input type="login_input" class="form-control" id="login_input" name="login_input" required>
                     </div>
                     <div class="form-group mb-4">
                         <label for="password" class="form-label">Password:</label>

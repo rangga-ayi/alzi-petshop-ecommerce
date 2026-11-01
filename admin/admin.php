@@ -210,7 +210,8 @@ $users = $conn->query("SELECT * FROM tbluser");
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="products.php">Product</a></li>
-                    <li><a class="dropdown-item" href="#">Cart</a></li>
+                    <li><a class="dropdown-item" href="cart.php">Cart</a></li>
+                    <li><a class="dropdown-item" href="transaction.php">Transaction</a></li>
                 </ul>
             </div>
             <div class="d-flex ms-auto">
