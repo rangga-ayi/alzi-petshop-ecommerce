@@ -244,6 +244,7 @@ INSERT INTO `user_detail` (`id`, `foto`, `jenis_kelamin`, `tanggal_lahir`, `alam
 --
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_product` (`user_id`, `product_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `product_id` (`product_id`);
 

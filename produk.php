@@ -91,12 +91,33 @@
         $product_name = $product['name'];
         $price = $product['price'] * $quantity;
 
-        // Masukkan data ke tabel cart
-        $insert_query = "INSERT INTO cart (user_id, user_name, product_id, product_name, quantity, price) VALUES (?, ?, ?, ?, ?, ?)";
-        $insert_stmt = $conn->prepare($insert_query);
-        $insert_stmt->bind_param("isissi", $user_id, $user_name, $product_id, $product_name, $quantity, $price);
+        // Cek apakah produk sudah ada di keranjang user
+        $check_stmt = $conn->prepare("SELECT id, quantity FROM cart WHERE user_id = ? AND product_id = ?");
+        $check_stmt->bind_param("ii", $user_id, $product_id);
+        $check_stmt->execute();
+        $check_res = $check_stmt->get_result();
 
-        if ($insert_stmt->execute()) {
+        if ($check_res && $check_row = $check_res->fetch_assoc()) {
+            // Update quantity dan total price item yang sudah ada
+            $new_quantity = $check_row['quantity'] + $quantity;
+            $new_price = $product['price'] * $new_quantity;
+            $cart_id = $check_row['id'];
+
+            $update_cart_stmt = $conn->prepare("UPDATE cart SET quantity = ?, price = ? WHERE id = ?");
+            $update_cart_stmt->bind_param("idi", $new_quantity, $new_price, $cart_id);
+            $success = $update_cart_stmt->execute();
+            $update_cart_stmt->close();
+        } else {
+            // Masukkan data baru ke tabel cart
+            $insert_query = "INSERT INTO cart (user_id, user_name, product_id, product_name, quantity, price) VALUES (?, ?, ?, ?, ?, ?)";
+            $insert_stmt = $conn->prepare($insert_query);
+            $insert_stmt->bind_param("isissd", $user_id, $user_name, $product_id, $product_name, $quantity, $price);
+            $success = $insert_stmt->execute();
+            $insert_stmt->close();
+        }
+        $check_stmt->close();
+
+        if ($success) {
             $cart_message = "<div class='alert alert-success alert-dismissible fade show' role='alert'>Produk berhasil ditambahkan ke keranjang!<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
         } else {
             $cart_message = "<div class='alert alert-danger alert-dismissible fade show' role='alert'>Gagal menambahkan produk: " . htmlspecialchars($conn->error) . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
@@ -104,7 +125,6 @@
 
         $user_stmt->close();
         $product_stmt->close();
-        $insert_stmt->close();
     }
 
     //Nama Depan
