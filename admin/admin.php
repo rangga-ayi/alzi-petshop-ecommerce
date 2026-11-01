@@ -225,35 +225,14 @@ $users = $conn->query("SELECT * FROM tbluser");
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">Alzi Petshop [Admin]</a>
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-bold" style="color: black;" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    Others
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="products.php">Product</a></li>
-                    <li><a class="dropdown-item" href="cart.php">Cart</a></li>
-                    <li><a class="dropdown-item" href="transaction.php">Transaction</a></li>
-                </ul>
-            </div>
-            <div class="d-flex ms-auto">
-            </div>
-            <div class="d-flex">
-                <a href="#" id="addUserBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">Add User</a>
-            </div>
-            <div class="navbar-item">
-                <a href="../detail.php">
-                    <img src="../<?php echo $foto; ?>" class="rounded-circle me-2">
-                    <span id="user"><?php echo getFirstName($nama); ?></span>
-                </a>
-            </div>
+    <?php include('navbar_admin.php'); ?>
+    <div class="container mt-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0 text-dark fw-bold"><i class="bi bi-people-fill me-2"></i>Manajemen Pengguna</h3>
+            <a href="#" id="addUserBtn" class="btn btn-primary btn-sm px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#userModal">
+                <i class="bi bi-person-plus-fill me-1"></i> Tambah User Baru
+            </a>
         </div>
-    </nav>
-    <div class="container mt-5 h-100">
-        <h3 style="color: black;">Users</h3>
         <table class="table table-bordered table-sm">
             <thead>
                 <tr>

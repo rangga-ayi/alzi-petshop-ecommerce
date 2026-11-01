@@ -159,31 +159,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">Alzi Petshop [Admin]</a>
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-bold" style="color: black;" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    Others
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="products.php">Product</a></li>
-                    <li><a class="dropdown-item" href="transaction.php">Transactions</a></li>
-                    <li><a class="dropdown-item" href="admin.php">User</a></li>
-                </ul>
-            </div>
-            <div class="d-flex ms-auto">
-            </div>
-
-            <div class="navbar-item">
-                <a href="../detail.php">
-                    <img src="../<?php echo $foto; ?>" class="rounded-circle me-2">
-                    <span id="user"><?php echo getFirstName($nama); ?></span>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include('navbar_admin.php'); ?>
     <div class="container mt-5">
         <h2 class="text-center">Cart</h2>
         <?php

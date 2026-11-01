@@ -178,6 +178,21 @@
     $stmt2 = $conn->prepare($queryriwayatpembeli);
     $stmt2->execute();
     $resultriwayatpembeli = $stmt2->get_result();
+
+    // Hitung pesanan masuk yang perlu diproses penjual
+    $pending_orders_count = 0;
+    if ($user_level === 'penjual') {
+        $cnt_stmt = $conn->query("
+            SELECT COUNT(*) AS cnt 
+            FROM transactions t 
+            JOIN shipping_detail sd ON t.order_id = sd.order_id 
+            WHERE (t.transaction_status = 'success' OR t.transaction_status = 'settlement') 
+            AND sd.status_pengiriman IN (1, 2, 3)
+        ");
+        if ($cnt_stmt && $cnt_row = $cnt_stmt->fetch_assoc()) {
+            $pending_orders_count = intval($cnt_row['cnt']);
+        }
+    }
 ?>
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-X7zfk0k3aWOJvdhF"></script>
@@ -261,8 +276,13 @@
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="<?= ($user_level === 'penjual') ? 'index_p.php' : (($user_level === 'admin') ? 'admin/admin.php' : 'index.php') ?>">
-                Alzi Petshop
+            <a class="navbar-brand ms-2 font-weight-bold d-inline-flex align-items-center" href="<?= ($user_level === 'penjual') ? 'index_p.php' : (($user_level === 'admin') ? 'admin/admin.php' : 'index.php') ?>">
+                <span>Alzi Petshop</span>
+                <?php if ($user_level === 'penjual'): ?>
+                    <span class="badge bg-warning text-dark border border-warning ms-2" style="font-size: 0.72rem; font-weight: 600;">Panel Toko</span>
+                <?php elseif ($user_level === 'admin'): ?>
+                    <span class="badge bg-primary text-white ms-2" style="font-size: 0.72rem; font-weight: 600;">Super Admin</span>
+                <?php endif; ?>
             </a>
             <?php if (!in_array($user_level, $restricted_levels)): ?>
             <div class="search-box me-3">
@@ -273,26 +293,33 @@
             <?php if ($user_level == 'penjual'): ?>
             <?php if (basename($_SERVER['PHP_SELF']) == 'detail_order.php'): ?>
             <?php else: ?>
-            <div class="d-flex">
-                <a href="tambah.php" class="btn btn-warning me-1" id="tambah">Tambah</a>
+            <div class="d-flex align-items-center">
+                <a href="tambah.php" class="btn btn-warning btn-sm fw-medium shadow-xs me-2" id="tambah">
+                    <i class="bi bi-plus-circle me-1"></i> Tambah Produk
+                </a>
             </div>
             <?php endif; ?>
             <?php endif; ?>
-            <div class="navbar-item">
+            <div class="navbar-item d-flex align-items-center">
                 <?php if (basename($_SERVER['PHP_SELF']) == 'detail.php'): ?>
                 <?php else: ?>
                 <?php if (!in_array($user_level, $restricted_levels)): ?>
-                <a href="riwayat.php" id="riwayatLink" title="Riwayat Pesanan">
+                <a href="riwayat.php" id="riwayatLink" title="Riwayat Pesanan Pelanggan">
                     <img src="imgs/riwayat.jpg" alt="riwayat" class="me-2">
                 </a>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#keranjangModal" id="keranjangLink">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#keranjangModal" id="keranjangLink" title="Keranjang Belanja">
                     <img src="imgs/cart.png" alt="Keranjang" class="me-2">
                 </a>
                 <?php endif; ?>
                 <?php endif; ?>
                 <?php if ($user_level == 'penjual'): ?>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#riwayatModalPembeli" id="riwayatLinkPembeli">
-                    <img src="imgs/riwayat.jpg" alt="riwayat" class="me-2">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#riwayatModalPembeli" id="riwayatLinkPembeli" title="Pesanan Masuk (Fulfillment Toko)" class="position-relative me-3 d-inline-block">
+                    <img src="imgs/riwayat.jpg" alt="Pesanan Masuk">
+                    <?php if ($pending_orders_count > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                            <?= $pending_orders_count ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
                 <?php endif; ?>
                 <a href="detail.php">
@@ -361,7 +388,9 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="riwayatModalLabelPembeli">Riwayat</h5>
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="riwayatModalLabelPembeli">
+                        <i class="bi bi-box-seam text-warning"></i> Pesanan Masuk (Fulfillment Toko)
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

@@ -138,7 +138,8 @@
                         <img src="' . htmlspecialchars($row['image']) . '" loading:="lazy" alt="' . htmlspecialchars($row['name']) . '">
                         </div>
                           <h3>' . htmlspecialchars($row['name']) . '</h3>
-                          <p>' . rupiah($row['price']) . '</p>';
+                          <p class="mb-1">' . rupiah($row['price']) . '</p>
+                          <small class="text-secondary d-block mt-1" style="font-size: 0.76rem;"><i class="bi bi-pencil-square me-1"></i>Klik untuk Edit/Hapus</small>';
                     echo '</div>';
                 }
             } else {

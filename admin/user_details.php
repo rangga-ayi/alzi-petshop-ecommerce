@@ -81,14 +81,7 @@ $user_details = $conn->query("SELECT * FROM user_detail");
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">Alzi Petshop [Admin]</a>
-            <div class="d-flex ms-auto">
-                <a href="admin.php" class="btn btn-outline-secondary me-3">Kembali ke Admin</a>
-            </div>
-        </div>
-    </nav>
+    <?php include('navbar_admin.php'); ?>
     <div class="container mt-5">
         <h2>User Details</h2>
         <a href="user_details.php" class="btn btn-primary mb-2" data-bs-toggle="modal"

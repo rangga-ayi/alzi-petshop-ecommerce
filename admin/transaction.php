@@ -120,32 +120,9 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="admin.php">Alzi Petshop [Admin]</a>
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-bold" style="color: black;" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    Others
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="cart.php">Cart</a></li>
-                    <li><a class="dropdown-item" href="products.php">Products</a></li>
-                    <li><a class="dropdown-item" href="admin.php">Users</a></li>
-                </ul>
-            </div>
-            <div class="d-flex ms-auto">
-            </div>
-            <div class="navbar-item">
-                <a href="../detail.php">
-                    <img src="../<?php echo $foto; ?>" class="rounded-circle me-2">
-                    <span id="user"><?php echo getFirstName($nama); ?></span>
-                </a>
-            </div>
-        </div>
-    </nav>
-    <div class="container pt-5">
-        <h1 class="mb-4 mt-5">Transaction Management</h1>
+    <?php include('navbar_admin.php'); ?>
+    <div class="container py-4">
+        <h3 class="mb-4 text-dark fw-bold"><i class="bi bi-receipt me-2"></i>Audit Transaksi Toko</h3>
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-light">
