@@ -136,6 +136,48 @@
         text-align: right;
     }
 
+    /* Polishing button styling preserving original visual identity */
+    .img-user .btn-action {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.55rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+
+    .img-user .btn-action:hover,
+    td.ubah .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        color: inherit;
+    }
+
+    .img-user .btn-action:active,
+    td.ubah .btn-action:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    td.ubah .btn-action {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.45rem 1rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+
+    table a.btn-action {
+        color: inherit;
+    }
+
     form {
         width: 100%;
         height: 50%;
@@ -292,20 +334,28 @@
                 <div class="img-user text-center">
                     <img src="<?php echo $foto; ?>" class="profile-img mb-3" alt="Foto Profil">
                     <h3 style="font-size: 1.3rem;" class="fw-bold"><?php echo $nama; ?></h3>
-                    <a href="ubah_foto.php" class="container-fluid btn btn-warning mt-3">Ubah Foto Profil</a>
-                    <a href="ubah_sandi.php" class="container-fluid btn btn-warning mt-2">Ubah Kata Sandi</a>
-                    <a class="container-fluid btn btn-danger mt-2" href="login/logout.php">Logout</a>
+                    <a href="ubah_foto.php" class="btn btn-warning btn-action mt-3">
+                        <i class="bi bi-camera"></i> Ubah Foto Profil
+                    </a>
+                    <a href="ubah_sandi.php" class="btn btn-warning btn-action mt-2">
+                        <i class="bi bi-shield-lock"></i> Ubah Kata Sandi
+                    </a>
+                    <a class="btn btn-danger btn-action mt-2" href="login/logout.php">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
                 </div>
             </div>
             <div class="col-md-9">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th colspan="2">
-                                <h4>Profile Saya</h4>
+                            <th colspan="2" class="align-middle">
+                                <h4 class="mb-0">Profile Saya</h4>
                             </th>
-                            <td class="ubah">
-                                <a class="btn btn-warning mt-2" href="ubah_data.php">Ubah Data</a>
+                            <td class="ubah align-middle">
+                                <a class="btn btn-warning btn-action" href="ubah_data.php">
+                                    <i class="bi bi-pencil-square"></i> Ubah Data
+                                </a>
                             </td>
                         </tr>
                     </thead>
