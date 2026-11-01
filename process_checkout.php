@@ -18,40 +18,9 @@ require_once 'midtrans_config.php';
 $user_id = intval($_SESSION['userid']);
 
 // 1. Ambil detail alamat dan hitung ongkir
-$stmt_addr = $conn->prepare("SELECT latitude, longitude FROM detail_address WHERE user_id = ?");
-$stmt_addr->bind_param("i", $user_id);
-$stmt_addr->execute();
-$res_addr = $stmt_addr->get_result();
-
-$shipping_cost = 0;
-if ($res_addr && $res_addr->num_rows > 0) {
-    $row_addr = $res_addr->fetch_assoc();
-    $lat1 = -3.0113878;
-    $lon1 = 104.6895402;
-    $lat2 = $row_addr["latitude"];
-    $lon2 = $row_addr["longitude"];
-
-    if (!function_exists('haversine')) {
-        function haversine($lat1, $lon1, $lat2, $lon2) {
-            $earthRadius = 6371;
-            $latDiff = deg2rad($lat2 - $lat1);
-            $lonDiff = deg2rad($lon2 - $lon1);
-            $a = sin($latDiff / 2) * sin($latDiff / 2) +
-                cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * 
-                sin($lonDiff / 2) * sin($lonDiff / 2);
-            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-            return $earthRadius * $c;
-        }
-    }
-    $distance = haversine($lat1, $lon1, $lat2, $lon2);
-    $costPerKm = 5;
-    if ($distance < 1) {
-        $shipping_cost = 1;
-    } else {
-        $shipping_cost = (int) round($distance * $costPerKm);
-    }
-}
-$stmt_addr->close();
+$shipping_info = get_shipping_info($user_id, $conn);
+$shipping_cost = $shipping_info['cost'];
+$shipping_distance = $shipping_info['distance'];
 
 // 2. Ambil data keranjang
 $stmt_cart = $conn->prepare("

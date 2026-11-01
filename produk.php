@@ -160,16 +160,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['buy_now']) || (isset
         if ($product_result->num_rows > 0) {
             $product = $product_result->fetch_assoc();
             $product_name = $product['name'];
-            $price = $product['price'] * $quantity;
+            $unit_price = (int) $product['price'];
 
             $items[] = [
-                'id' => $product_id,
-                'price' => $price,
+                'id' => (string) $product_id,
+                'price' => $unit_price,
                 'quantity' => $quantity,
                 'name' => $product_name
             ];
 
-            $total_price += $price; // Tambahkan harga produk ke total_price
+            $total_price += ($unit_price * $quantity);
+
+            // Tambahkan ongkos kirim terpusat
+            $shipping_info = get_shipping_info($user_id, $conn);
+            $shipping_cost = $shipping_info['cost'];
+            if ($shipping_cost > 0) {
+                $items[] = [
+                    'id' => 'shipping',
+                    'price' => $shipping_cost,
+                    'quantity' => 1,
+                    'name' => 'Ongkos Kirim'
+                ];
+                $total_price += $shipping_cost;
+            }
         }
     }
 }

@@ -6,49 +6,10 @@
     // Query untuk mengambil data dari tabel cart berdasarkan user_id
 
 
-    // hitung ongkir
-    $sql = "SELECT * FROM detail_address WHERE user_id = ?";
-    // Persiapkan statement
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $user_id);  // "i" berarti integer
-    // Eksekusi statement
-    $stmt->execute();
-    // Ambil hasilnya
-    $result = $stmt->get_result();
-
-    $shipping_cost = 0; // Inisialisasi nilai shipping_cost
-
-    if ($result->num_rows > 0) {
-        // Menampilkan data
-        while ($row = $result->fetch_assoc()) {
-            $lat1 = -3.0113878;
-            $lon1 = 104.6895402;
-            $lat2 = $row["latitude"];
-            $lon2 = $row["longitude"];
-            // Haversine Formula
-            if (!function_exists('haversine')) {
-                function haversine($lat1, $lon1, $lat2, $lon2) {
-                    $earthRadius = 6371; // Radius of the earth in km
-                    $latDiff = deg2rad($lat2 - $lat1);
-                    $lonDiff = deg2rad($lon2 - $lon1);
-                    $a = sin($latDiff / 2) * sin($latDiff / 2) +
-                        cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * 
-                        sin($lonDiff / 2) * sin($lonDiff / 2);
-                    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-                    $distance = $earthRadius * $c; // Distance in km
-                    return $distance;
-                }
-            }
-            $distance = haversine($lat1, $lon1, $lat2, $lon2);
-            $costPerKm = 5; // Biaya per km (contoh)
-            // Jika jarak kurang dari 1km, tetap dihitung Rp5000
-            if ($distance < 1) {
-                $shipping_cost = 1;
-            } else {
-                $shipping_cost = round($distance * $costPerKm); // Dibulatkan ke integer terdekat
-            }
-        }
-    }
+    // Hitung ongkir terpusat
+    $shipping_info = get_shipping_info($user_id, $conn);
+    $shipping_cost = $shipping_info['cost'];
+    $shipping_distance = $shipping_info['distance'];
 
     // Ambil data keranjang untuk Midtrans
     $items = [];
@@ -388,7 +349,16 @@
                         <?php 
 						    $total_price_display += $row['price'] * $row['quantity']; // Hitung total price untuk tampilan modal
 						endwhile; ?>
-                        <p class="total-price">Total Belanja: Rp<?= number_format($total_price_display, 0, ',', '.'); ?>
+                        <div class="d-flex justify-content-between text-muted small mt-2">
+                            <span>Subtotal Produk:</span>
+                            <span>Rp<?= number_format($total_price_display, 0, ',', '.'); ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>Ongkos Kirim<?= ($shipping_distance > 0) ? " ({$shipping_distance} km)" : "" ?>:</span>
+                            <span>Rp<?= number_format($shipping_cost, 0, ',', '.'); ?></span>
+                        </div>
+                        <hr class="my-2">
+                        <p class="total-price text-end fw-bold">Total Pembayaran: Rp<?= number_format($total_price_display + $shipping_cost, 0, ',', '.'); ?>
                         </p>
                         <div class="cart-actions container-fluid d-flex justify-content-between">
                             <button class="btn btn-warning" type="submit" name="update_cart">Update Keranjang</button>
