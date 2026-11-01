@@ -160,23 +160,7 @@
             }
         }
     }
-    $queryriwayat = "
-        SELECT 
-        t.*,
-        u.nama AS nama_user,
-        ss.status_pengiriman AS shipping_status 
-        FROM transactions t
-        LEFT JOIN tbluser u ON t.user_id = u.id
-        LEFT JOIN shipping_detail sd ON t.order_id = sd.order_id
-        LEFT JOIN shipping_status ss ON sd.status_pengiriman = ss.id
-        WHERE t.user_id = ?
-    ";
 
-    // Gunakan prepared statement
-    $stmt1 = $conn->prepare($queryriwayat);
-    $stmt1->bind_param("i", $user_id);
-    $stmt1->execute();
-    $resultriwayat = $stmt1->get_result();
 
     $queryriwayatpembeli = "
         SELECT 
@@ -298,7 +282,7 @@
                 <?php if (basename($_SERVER['PHP_SELF']) == 'detail.php'): ?>
                 <?php else: ?>
                 <?php if (!in_array($user_level, $restricted_levels)): ?>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#riwayatModal" id="riwayatLink">
+                <a href="riwayat.php" id="riwayatLink" title="Riwayat Pesanan">
                     <img src="imgs/riwayat.jpg" alt="riwayat" class="me-2">
                 </a>
                 <a href="#" data-bs-toggle="modal" data-bs-target="#keranjangModal" id="keranjangLink">
@@ -370,76 +354,6 @@
         </div>
     </div>
     <!-- End keranjang -->
-
-    <!-- Modal Riwayat Pembeli-->
-    <div class="modal fade" id="riwayatModal" tabindex="-1" aria-labelledby="riwayatModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="riwayatModalLabel">Riwayat</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Quantity</th>
-                                    <th>Order ID</th>
-                                    <th>Harga</th>
-                                    <th>Status Pembayaran</th>
-                                    <th>Waktu Pembayaran</th>
-                                    <th>Status Pengiriman</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($resultriwayat && $resultriwayat->num_rows > 0): ?>
-                                <?php while ($row = $resultriwayat->fetch_assoc()): ?>
-                                <tr>
-                                    <?php 
-                                            $item_details = json_decode($row['item_details'], true);
-                                            if ($item_details): ?>
-                                    <td>
-                                        <?php 
-                                                    $item_names = array_map(function($item) {
-                                                        return htmlspecialchars($item['name']);
-                                                    }, $item_details);
-                                                    echo implode(", ", $item_names);
-                                                    ?>
-                                    </td>
-                                    <td>
-                                        <?php 
-                                                    $item_quantities = array_map(function($item) {
-                                                        return htmlspecialchars($item['quantity']);
-                                                    }, $item_details);
-                                                    echo implode(", ", $item_quantities);
-                                                    ?>
-                                    </td>
-                                    <?php else: ?>
-                                    <td>No items found</td>
-                                    <?php endif; ?>
-                                    <td><?= htmlspecialchars($row['order_id']); ?></td>
-                                    <td><?= htmlspecialchars(rupiah($row['gross_amount'])); ?></td>
-                                    <td><?= htmlspecialchars($row['transaction_status']); ?></td>
-                                    <td><?= htmlspecialchars($row['payment_time']); ?></td>
-                                    <td><a href="detail_riwayat.php?order_id=<?php echo $row['order_id']; ?>"
-                                            class="btn btn-primary">Detail</a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                                <?php else: ?>
-                                <tr>
-                                    <td colspan="8" class="text-center">No transactions found</td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal Riwayat Penjual -->
     <div class="modal fade" id="riwayatModalPembeli" tabindex="-1" aria-labelledby="riwayatModalLabelPembeli"
