@@ -316,7 +316,7 @@
     <!-- Navbar, Search, Keranjang, User -->
     <nav class="navbar">
         <div class="container-fluid">
-            <a class="navbar-brand ms-2 font-weight-bold" href="index_p.php">
+            <a class="navbar-brand ms-2 font-weight-bold" href="<?= ($user_level === 'penjual') ? 'index_p.php' : (($user_level === 'admin') ? 'admin/admin.php' : 'index.php') ?>">
                 Alzi Petshop
             </a>
             <?php if (!in_array($user_level, $restricted_levels)): ?>
