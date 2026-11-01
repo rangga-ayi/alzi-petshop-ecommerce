@@ -7,41 +7,34 @@
         exit;
     }
 
-    $userid = $_SESSION['userid']; // Ambil user ID dari session
+    $userid = intval($_SESSION['userid']); // Ambil user ID dari session
 
     // Query untuk mengambil data dari kedua tabel
-    $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
+    $stmt = $conn->prepare("SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
     FROM tbluser u 
     LEFT JOIN user_detail d ON u.id = d.id 
-    WHERE u.id = '$userid'";
+    WHERE u.id = ?");
+    $stmt->bind_param("i", $userid);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    $result = mysqli_query($conn, $sql);
-
-    if ($result->num_rows > 0) {
-    $row = mysqli_fetch_assoc($result);
-    $foto = $row['foto'];
-    $nama = $row['nama'];
-    $email = $row['email'];
-    $level = $row['level'];
-    $jenis_kelamin = $row['jenis_kelamin'];
-    $tanggal_lahir = $row['tanggal_lahir'];
-    $alamat = $row['alamat'];
-    $no_telepon = $row['no_telepon'];
+    if ($result && $result->num_rows > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $foto = $row['foto'];
+        $nama = $row['nama'];
+        $email = $row['email'];
+        $level = $row['level'];
+        $jenis_kelamin = $row['jenis_kelamin'];
+        $tanggal_lahir = $row['tanggal_lahir'];
+        $alamat = $row['alamat'];
+        $no_telepon = $row['no_telepon'];
     } else {
-    echo "Data user tidak ditemukan.";
+        echo "Data user tidak ditemukan.";
+        exit;
     }
+    $stmt->close();
 
-    // Ambil email user dari database
-    $query = "SELECT email FROM tbluser WHERE id = '$userid'";
-    $result = mysqli_query($conn, $query);
-    $user = mysqli_fetch_assoc($result);
-    $email = $user['email'];
-
-    // Ambil path foto user dari database
-    $query = "SELECT foto FROM user_detail WHERE id = '$userid'";
-    $result = mysqli_query($conn, $query);
-    $user_detail = mysqli_fetch_assoc($result);
-    $old_photo_path = $user_detail['foto'];
+    $old_photo_path = $foto;
     // Tentukan foto default jika $old_photo_path kosong atau null
     $foto_default = 'imgs/user/default.png';
     if (empty($old_photo_path)) {
@@ -89,20 +82,21 @@
         // Jika semua cek lolos, coba upload file
         } else {
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-                // Hapus file foto lama jika ada
-                if ($old_photo_path && file_exists($old_photo_path)) {
-                    if ($old_photo_path =! "/imgs/user/default.png") {
-                        unlink($old_photo_path);
-                    }
+                // Hapus file foto lama jika bukan foto default
+                if ($old_photo_path && file_exists($old_photo_path) && strpos($old_photo_path, 'default.png') === false) {
+                    unlink($old_photo_path);
                 }
 
-                // Update path foto di database
-                $sql = "UPDATE user_detail SET foto='$target_file' WHERE id='$userid'";
-                if (mysqli_query($conn, $sql)) {
+                // Update path foto di database dengan prepared statement
+                $stmt_up = $conn->prepare("UPDATE user_detail SET foto = ? WHERE id = ?");
+                $stmt_up->bind_param("si", $target_file, $userid);
+                if ($stmt_up->execute()) {
+                    $stmt_up->close();
                     echo "<script>
                             document.location='index.php';
                           </script>";
                 } else {
+                    $stmt_up->close();
                     echo "<script>
                             alert('Terjadi kesalahan saat mengubah foto profil. Silakan coba lagi.');
                             window.history.back();

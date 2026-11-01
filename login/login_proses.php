@@ -6,19 +6,22 @@ session_start();
 include '../php/php.php';
 
 // Menangkap data yang dikirim dari form login
-$login_input = $_POST['login_input']; // Bisa email atau no_telepon
+$login_input = trim($_POST['login_input']); // Bisa email atau no_telepon
 $password = sha1($_POST['password']); // Mengenkripsi password
 
-// Menyeleksi data user berdasarkan email atau no_telepon
-$login = mysqli_query($conn, 
+// Menyeleksi data user berdasarkan email atau no_telepon dengan prepared statement
+$stmt = $conn->prepare(
     "SELECT tbluser.id, tbluser.email, tbluser.password, tbluser.level, user_detail.no_telepon 
      FROM tbluser 
      LEFT JOIN user_detail ON tbluser.id = user_detail.id 
-     WHERE (tbluser.email='$login_input' OR user_detail.no_telepon='$login_input') AND tbluser.password='$password'"
+     WHERE (tbluser.email = ? OR user_detail.no_telepon = ?) AND tbluser.password = ?"
 );
+$stmt->bind_param("sss", $login_input, $login_input, $password);
+$stmt->execute();
+$login = $stmt->get_result();
 
 // Menghitung jumlah data yang ditemukan
-$cek = mysqli_num_rows($login);
+$cek = $login->num_rows;
 
 // Cek apakah email atau no_telepon dengan password ditemukan pada database
 if ($cek > 0) {

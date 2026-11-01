@@ -17,15 +17,17 @@
         header("Location: login/login_form.php");
         exit;
     }
-    $userid = $_SESSION['userid'];
+    $userid = intval($_SESSION['userid']);
 
     // Query untuk mengambil data user
     $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
     FROM tbluser u 
     LEFT JOIN user_detail d ON u.id = d.id 
-    WHERE u.id = '$userid'";
-
-    $result = mysqli_query($conn, $sql);
+    WHERE u.id = ?";
+    $stmt_u = $conn->prepare($sql);
+    $stmt_u->bind_param("i", $userid);
+    $stmt_u->execute();
+    $result = $stmt_u->get_result();
 
     if ($result && $result->num_rows > 0) {
         $row = mysqli_fetch_assoc($result);
@@ -36,6 +38,7 @@
     } else {
         echo "Data user tidak ditemukan.";
     }
+    $stmt_u->close();
 
     // Ambil semua produk untuk pencarian
     $query = "SELECT id, name, price, image FROM products";
@@ -51,17 +54,22 @@
     // Ambil produk berdasarkan ID dari parameter URL
     $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
 
-    $data = mysqli_query($conn, "SELECT * FROM products WHERE id = '$product_id'");
-    $productd = mysqli_fetch_assoc($data);
-    if ($result && $result->num_rows > 0) {
+    $stmt_p = $conn->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt_p->bind_param("i", $product_id);
+    $stmt_p->execute();
+    $data = $stmt_p->get_result();
+    $productd = $data ? $data->fetch_assoc() : null;
+    if ($productd) {
         $nama_p = $productd['name'];
         $harga_p = $productd['price'];
-        $satuan_p = $productd['satuan'];
+        $satuan_p = isset($productd['satuan']) ? $productd['satuan'] : '';
     }
+    $stmt_p->close();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quantity']) && !isset($_POST['checkout']) && !isset($_POST['buy_now'])) {
+    $cart_message = "";
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quantity']) && !isset($_POST['checkout']) && (!isset($_POST['action']) || $_POST['action'] !== 'buy_now')) {
         // Ambil data dari form
-        $user_id = $_SESSION['userid'];
+        $user_id = intval($_SESSION['userid']);
         $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
         $quantity = (int) $_POST['quantity'];
 
@@ -89,9 +97,9 @@
         $insert_stmt->bind_param("isissi", $user_id, $user_name, $product_id, $product_name, $quantity, $price);
 
         if ($insert_stmt->execute()) {
-            echo "<p>Produk berhasil ditambahkan ke keranjang!</p>";
+            $cart_message = "<div class='alert alert-success alert-dismissible fade show' role='alert'>Produk berhasil ditambahkan ke keranjang!<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
         } else {
-            echo "<p>Gagal menambahkan produk: " . $conn->error . "</p>";
+            $cart_message = "<div class='alert alert-danger alert-dismissible fade show' role='alert'>Gagal menambahkan produk: " . htmlspecialchars($conn->error) . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
         }
 
         $user_stmt->close();
@@ -106,26 +114,33 @@
     }
 
     require("php/navbar.php");
-    $user_id = $_SESSION['userid'];
+    $user_id = intval($_SESSION['userid']);
 
-// Ambil informasi user dari tabel tbluser dan user_detail
+// Ambil informasi user dari tabel tbluser dan user_detail dengan prepared statement
 $query_user = "
     SELECT u.nama, u.email, d.alamat, d.no_telepon
     FROM tbluser u
     JOIN user_detail d ON u.id = d.id
-    WHERE u.id = '$user_id'
+    WHERE u.id = ?
 ";
-$result_user = mysqli_query($conn, $query_user);
-$user = mysqli_fetch_assoc($result_user);
+$stmt_qu = $conn->prepare($query_user);
+$stmt_qu->bind_param("i", $user_id);
+$stmt_qu->execute();
+$result_user = $stmt_qu->get_result();
+$user = $result_user ? $result_user->fetch_assoc() : null;
+$stmt_qu->close();
 
 // Ambil informasi produk dari tabel cart
 $query_cart = "
     SELECT c.product_id, p.name AS product_name, c.quantity, p.price, (c.quantity * p.price) AS total_price
     FROM cart c
     JOIN products p ON c.product_id = p.id
-    WHERE c.user_id = '$user_id'
+    WHERE c.user_id = ?
 ";
-$result_cart = mysqli_query($conn, $query_cart);
+$stmt_qc = $conn->prepare($query_cart);
+$stmt_qc->bind_param("i", $user_id);
+$stmt_qc->execute();
+$result_cart = $stmt_qc->get_result();
 
 // Hitung total harga
 
@@ -284,6 +299,7 @@ if (!empty($items) && $total_price > 0) {
     <script src="script/script.js"></script>
     <!-- Detail Produk -->
     <div id="container-p" class="container mt-5" style="padding-top: 1.5rem; color: black;">
+        <?php if (!empty($cart_message)) echo $cart_message; ?>
         <?php if ($productd): ?>
         <div class="row">
             <!-- Gambar Produk -->
@@ -296,67 +312,68 @@ if (!empty($items) && $total_price > 0) {
             <div class="col-md-6 item-konten-p">
                 <h4 class="nama-p"><?php echo htmlspecialchars($productd['name']); ?></h4>
                 <h2 class="harga-p">Rp<?php echo number_format($productd['price'], 0, ',', '.'); ?></h2>
-                <form method="POST" action="">
-                    <!-- Deskripsi -->
-                    <div id="description" class="deskripsi-terbatas" onclick="toggleDescription()">
-                        <?php 
-                            $maxLength = 200;
-                            $description = nl2br(htmlspecialchars($productd['description']));
-                            $shortDesc = substr($description, 0, $maxLength);
-                            $isTruncated = strlen($description) > $maxLength;
+                <!-- Deskripsi -->
+                <div id="description" class="deskripsi-terbatas" onclick="toggleDescription()">
+                    <?php 
+                        $maxLength = 200;
+                        $description = nl2br(htmlspecialchars($productd['description']));
+                        $shortDesc = substr($description, 0, $maxLength);
+                        $isTruncated = strlen($description) > $maxLength;
 
-                            echo '<span id="short-desc">' . $shortDesc . ($isTruncated ? '...' : '') . '</span>';
-                            echo '<span id="full-desc" style="display:none;">' . $description . '</span>';
-                        ?>
-                        <?php if ($isTruncated): ?>
-                        <button id="toggle-desc" type="button" class="btn btn-link p-0"
-                            style="pointer-events: none; text-decoration: none; color: rgb(255, 180, 0); font-weight: bold;">Lihat
-                            Selengkapnya</button>
-                        <?php endif; ?>
-                    </div>
+                        echo '<span id="short-desc">' . $shortDesc . ($isTruncated ? '...' : '') . '</span>';
+                        echo '<span id="full-desc" style="display:none;">' . $description . '</span>';
+                    ?>
+                    <?php if ($isTruncated): ?>
+                    <button id="toggle-desc" type="button" class="btn btn-link p-0"
+                        style="pointer-events: none; text-decoration: none; color: rgb(255, 180, 0); font-weight: bold;">Lihat
+                        Selengkapnya</button>
+                    <?php endif; ?>
+                </div>
 
-                    <form action="produk.php" method="POST">
-                        <!-- Tombol Mobile -->
-                        <div id="A" class="gap-3 item-button-mobile">
-                            <!-- Tombol Beli Sekarang -->
-                            <button type="button" class="btn-beli" id="beliButton" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Beli Sekarang
-                            </button>
-                            <!-- Div Dropdown -->
-                            <div class="dropdown-menu p-4" aria-labelledby="beliButton" id="beliDropdown">
-                                <h6>Konfirmasi Pembelian</h6>
-                                <!-- Jumlah Barang -->
-                                <div class="d-flex align-items-center my-3">
-                                    <label for="quantity" class="me-2">Jumlah:</label>
-                                    <div class="quantity-box d-flex">
-                                        <button type="button" class="btn btn-outline-secondary decreaseBtn">-</button>
-                                        <input type="number" class="quantityInput form-control mx-2" name="quantity"
-                                            min="1" value="1" />
-                                        <button type="button" class="btn btn-outline-secondary increaseBtn">+</button>
-                                    </div>
-                                </div>
-                                <button type="submit" name="action" value="buy_now" class="btn-beli">Beli</button>
-                            </div>
-                        </div>
-                        <!-- Tombol Tablet + Dekstop -->
-                        <div id="B" class="gap-3 item-button-tabdesk">
+                <form action="produk.php?product_id=<?php echo $product_id; ?>" method="POST">
+                    <!-- Tombol Mobile -->
+                    <div id="A" class="gap-3 item-button-mobile">
+                        <!-- Tombol Beli Sekarang -->
+                        <button type="button" class="btn-beli" id="beliButton" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Beli Sekarang
+                        </button>
+                        <!-- Div Dropdown -->
+                        <div class="dropdown-menu p-4" aria-labelledby="beliButton" id="beliDropdown">
+                            <h6>Konfirmasi Pembelian</h6>
                             <!-- Jumlah Barang -->
                             <div class="d-flex align-items-center my-3">
                                 <label for="quantity" class="me-2">Jumlah:</label>
                                 <div class="quantity-box d-flex">
                                     <button type="button" class="btn btn-outline-secondary decreaseBtn">-</button>
-                                    <input type="number" class="quantityInput form-control mx-2" name="quantity" min="1"
-                                        value="1" />
+                                    <input type="number" class="quantityInput form-control mx-2" name="quantity"
+                                        min="1" value="1" />
                                     <button type="button" class="btn btn-outline-secondary increaseBtn">+</button>
                                 </div>
                             </div>
-                            <!-- Tombol Beli Sekarang -->
-                            <button type="submit" name="action" value="buy_now" class="btn-beli">Masukkan
-                                Keranjang</button>
-                            <a class="btn btn-success" type="checkout" id="pay-buttons">Checkout</a>
+                            <button type="submit" name="action" value="buy_now" class="btn-beli">Beli</button>
                         </div>
-                    </form>
+                    </div>
+                    <!-- Tombol Tablet + Dekstop -->
+                    <div id="B" class="gap-3 item-button-tabdesk">
+                        <!-- Jumlah Barang -->
+                        <div class="d-flex align-items-center my-3">
+                            <label for="quantity" class="me-2">Jumlah:</label>
+                            <div class="quantity-box d-flex">
+                                <button type="button" class="btn btn-outline-secondary decreaseBtn">-</button>
+                                <input type="number" class="quantityInput form-control mx-2" name="quantity" min="1"
+                                    value="1" />
+                                <button type="button" class="btn btn-outline-secondary increaseBtn">+</button>
+                            </div>
+                        </div>
+                        <!-- Tombol Masukkan Keranjang -->
+                        <button type="submit" name="action" value="add_to_cart" class="btn-beli">Masukkan Keranjang</button>
+                        <?php if (!empty($snap_token)): ?>
+                        <a class="btn btn-success" type="checkout" id="pay-buttons">Bayar Sekarang</a>
+                        <?php else: ?>
+                        <button type="submit" name="action" value="buy_now" class="btn btn-success">Beli Sekarang</button>
+                        <?php endif; ?>
+                    </div>
                 </form>
             </div>
         </div>
@@ -434,47 +451,71 @@ if (!empty($items) && $total_price > 0) {
         const beliButton = document.querySelector('#beliButton');
         const beliDropdown = document.querySelector('#beliDropdown');
 
-        beliButton.addEventListener('click', function(event) {
-            const isOpen = beliDropdown.classList.contains('show');
-            if (!isOpen) {
-                const dropdown = new bootstrap.Dropdown(beliButton);
-                dropdown.show();
-            } else {
-                event.stopPropagation();
-            }
-        });
+        if (beliButton && beliDropdown) {
+            beliButton.addEventListener('click', function(event) {
+                const isOpen = beliDropdown.classList.contains('show');
+                if (!isOpen) {
+                    const dropdown = new bootstrap.Dropdown(beliButton);
+                    dropdown.show();
+                } else {
+                    event.stopPropagation();
+                }
+            });
 
-        beliDropdown.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
+            beliDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
 
-        document.addEventListener('click', function(e) {
-            if (!beliButton.contains(e.target) && !beliDropdown.contains(e.target)) {
-                const dropdown = new bootstrap.Dropdown(beliButton);
-                dropdown.hide();
-            }
-        });
+            document.addEventListener('click', function(e) {
+                if (!beliButton.contains(e.target) && !beliDropdown.contains(e.target)) {
+                    const dropdown = new bootstrap.Dropdown(beliButton);
+                    dropdown.hide();
+                }
+            });
+        }
 
     var payButton = document.getElementById('pay-buttons');
     if (payButton) {
         payButton.addEventListener('click', function() {
+            if ('<?= $snap_token; ?>') {
+                window.snap.pay('<?= $snap_token; ?>', {
+                    onSuccess: function(result) {
+                        alert("Pembayaran berhasil!");
+                        console.log(result);
+                        window.location.href = "success.php";
+                    },
+                    onPending: function(result) {
+                        alert("Menunggu pembayaran.");
+                        console.log(result);
+                    },
+                    onError: function(result) {
+                        alert("Pembayaran gagal!");
+                        console.log(result);
+                    }
+                });
+            }
+        });
+    }
+
+    <?php if (!empty($snap_token)): ?>
+    // Auto-open Snap popup saat Beli Sekarang disubmit
+    window.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.snap !== 'undefined' && '<?= $snap_token; ?>') {
             window.snap.pay('<?= $snap_token; ?>', {
                 onSuccess: function(result) {
                     alert("Pembayaran berhasil!");
-                    console.log(result);
                     window.location.href = "success.php";
                 },
                 onPending: function(result) {
                     alert("Menunggu pembayaran.");
-                    console.log(result);
                 },
                 onError: function(result) {
                     alert("Pembayaran gagal!");
-                    console.log(result);
                 }
             });
-        });
-    }
+        }
+    });
+    <?php endif; ?>
    
     </script>
     <!-- End Js Search -->

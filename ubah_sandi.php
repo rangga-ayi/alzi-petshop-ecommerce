@@ -13,9 +13,11 @@
     $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
     FROM tbluser u 
     LEFT JOIN user_detail d ON u.id = d.id 
-    WHERE u.id = '$userid'";
-
-    $result = mysqli_query($conn, $sql);
+    WHERE u.id = ?";
+    $stmt_u = $conn->prepare($sql);
+    $stmt_u->bind_param("i", $userid);
+    $stmt_u->execute();
+    $result = $stmt_u->get_result();
 
     if ($result->num_rows > 0) {
     $row = mysqli_fetch_assoc($result);
@@ -43,17 +45,22 @@
         $new_password = mysqli_real_escape_string($conn, $_POST['new_password']);
         $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
 
-        // Validasi password lama
-        $sql = "SELECT password FROM tbluser WHERE id = '$userid'";
-        $result = mysqli_query($conn, $sql);
-        $row = mysqli_fetch_assoc($result);
+        // Validasi password lama dengan prepared statement
+        $stmt_pw = $conn->prepare("SELECT password FROM tbluser WHERE id = ?");
+        $stmt_pw->bind_param("i", $userid);
+        $stmt_pw->execute();
+        $res_pw = $stmt_pw->get_result();
+        $row = $res_pw ? $res_pw->fetch_assoc() : null;
+        $stmt_pw->close();
 
-        if (sha1($old_password) === $row['password']) {
+        if ($row && sha1($old_password) === $row['password']) {
             if ($new_password === $confirm_password) {
                 $new_password_encrypted = sha1($new_password);
-                $update_sql = "UPDATE tbluser SET password='$new_password_encrypted' WHERE id='$userid'";
+                $stmt_up = $conn->prepare("UPDATE tbluser SET password = ? WHERE id = ?");
+                $stmt_up->bind_param("si", $new_password_encrypted, $userid);
 
-                if (mysqli_query($conn, $update_sql)) {
+                if ($stmt_up->execute()) {
+                    $stmt_up->close();
                     echo "<script>
                             alert('Kata sandi berhasil diubah');
                             document.location='index.php';

@@ -17,12 +17,15 @@ if ($_SESSION['level'] != "admin") {
 $userid = $_SESSION['userid']; // Ambil user ID dari session
 
 // Query untuk mengambil data dari kedua tabel
+$userid = intval($_SESSION['userid']);
 $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
 FROM tbluser u 
 LEFT JOIN user_detail d ON u.id = d.id 
-WHERE u.id = '$userid'";
-
-$result = mysqli_query($conn, $sql);
+WHERE u.id = ?";
+$stmt_admin = $conn->prepare($sql);
+$stmt_admin->bind_param("i", $userid);
+$stmt_admin->execute();
+$result = $stmt_admin->get_result();
 
 if ($result->num_rows > 0) {
 $row = mysqli_fetch_assoc($result);
@@ -40,24 +43,38 @@ echo "Data user tidak ditemukan.";
 
 // Handle Create and Update
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama = $_POST['nama'];
-    $email = $_POST['email'];
-    $password = sha1($_POST['password']); // Menggunakan SHA1 untuk enkripsi password
-    $level = $_POST['level'];
+    $nama = trim($_POST['nama']);
+    $email = trim($_POST['email']);
+    $level = trim($_POST['level']);
 
-    if (isset($_POST['id'])) {
-        $id = $_POST['id'];
-        $sql = "UPDATE tbluser SET nama='$nama', email='$email', password='$password', level='$level' WHERE id=$id";
+    if (isset($_POST['id']) && !empty($_POST['id'])) {
+        $id = intval($_POST['id']);
+        if (!empty($_POST['password'])) {
+            $password = sha1($_POST['password']);
+            $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, password = ?, level = ? WHERE id = ?");
+            $stmt_up->bind_param("ssssi", $nama, $email, $password, $level, $id);
+        } else {
+            $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ? WHERE id = ?");
+            $stmt_up->bind_param("sssi", $nama, $email, $level, $id);
+        }
+        $stmt_up->execute();
+        $stmt_up->close();
     } else {
-        $sql = "INSERT INTO tbluser (nama, email, password, level) VALUES ('$nama', '$email', '$password', '$level')";
+        $password = sha1($_POST['password']);
+        $stmt_in = $conn->prepare("INSERT INTO tbluser (nama, email, password, level) VALUES (?, ?, ?, ?)");
+        $stmt_in->bind_param("ssss", $nama, $email, $password, $level);
+        $stmt_in->execute();
+        $stmt_in->close();
     }
-    $conn->query($sql);
 }
 
 // Handle Delete
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $conn->query("DELETE FROM tbluser WHERE id=$id");
+    $id = intval($_GET['delete']);
+    $stmt_del = $conn->prepare("DELETE FROM tbluser WHERE id = ?");
+    $stmt_del->bind_param("i", $id);
+    $stmt_del->execute();
+    $stmt_del->close();
 }
 
 // Fetch Users
@@ -146,8 +163,14 @@ function getFirstName($fullName) {
                         </div>
                         <div class="modal-body">
                             <?php if (isset($_GET['edit'])):
-                            $id = $_GET['edit'];
-                            $user = $conn->query("SELECT * FROM tbluser WHERE id=$id")->fetch_assoc(); ?>
+                            $id = intval($_GET['edit']);
+                            $stmt_u_ed = $conn->prepare("SELECT * FROM tbluser WHERE id = ?");
+                            $stmt_u_ed->bind_param("i", $id);
+                            $stmt_u_ed->execute();
+                            $res_u_ed = $stmt_u_ed->get_result();
+                            $user = $res_u_ed ? $res_u_ed->fetch_assoc() : null;
+                            $stmt_u_ed->close();
+                            ?>
                             <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
                             <?php endif; ?>
                             <div class="mb-3">

@@ -1,5 +1,12 @@
 <?php
+session_start();
 include('php/php.php');
+
+if (!isset($_SESSION['userid'])) {
+    header("Location: login/login_form.php");
+    exit;
+}
+
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
 $new_status = "Success";
 $new_shipping_status = 2;

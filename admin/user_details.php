@@ -55,8 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Handle Delete
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $conn->query("DELETE FROM user_detail WHERE id=$id");
+    $id = intval($_GET['delete']);
+    $stmt_del = $conn->prepare("DELETE FROM user_detail WHERE id = ?");
+    $stmt_del->bind_param("i", $id);
+    $stmt_del->execute();
+    $stmt_del->close();
     header("Location: user_details.php");
     exit;
 }
@@ -132,8 +135,14 @@ $user_details = $conn->query("SELECT * FROM user_detail");
                         </div>
                         <div class="modal-body">
                             <?php if (isset($_GET['edit'])):
-                            $id = $_GET['edit'];
-                            $user_detail = $conn->query("SELECT * FROM user_detail WHERE id=$id")->fetch_assoc(); ?>
+                            $id = intval($_GET['edit']);
+                            $stmt_ed = $conn->prepare("SELECT * FROM user_detail WHERE id = ?");
+                            $stmt_ed->bind_param("i", $id);
+                            $stmt_ed->execute();
+                            $res_ed = $stmt_ed->get_result();
+                            $user_detail = $res_ed ? $res_ed->fetch_assoc() : null;
+                            $stmt_ed->close();
+                            ?>
                             <input type="hidden" name="id" value="<?php echo $user_detail['id']; ?>">
                             <?php endif; ?>
 

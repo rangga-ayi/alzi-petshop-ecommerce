@@ -18,9 +18,11 @@
     $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
     FROM tbluser u 
     LEFT JOIN user_detail d ON u.id = d.id 
-    WHERE u.id = '$userid'";
-
-    $result = mysqli_query($conn, $sql);
+    WHERE u.id = ?";
+    $stmt_u = $conn->prepare($sql);
+    $stmt_u->bind_param("i", $userid);
+    $stmt_u->execute();
+    $result = $stmt_u->get_result();
 
     if ($result->num_rows > 0) {
         $row = mysqli_fetch_assoc($result);
@@ -190,13 +192,15 @@
         <?php
         // Handle Delete Item
         if (isset($_GET['delete'])) {
-            $id = $_GET['delete'];
-            $sql = "DELETE FROM cart WHERE id=$id";
-            if ($conn->query($sql) === TRUE) {
+            $id = intval($_GET['delete']);
+            $stmt_del = $conn->prepare("DELETE FROM cart WHERE id = ?");
+            $stmt_del->bind_param("i", $id);
+            if ($stmt_del->execute()) {
                 echo "<div class='alert alert-success'>Item deleted successfully!</div>";
             } else {
-                echo "<div class='alert alert-danger'>Error: " . $conn->error . "</div>";
+                echo "<div class='alert alert-danger'>Error: " . htmlspecialchars($conn->error) . "</div>";
             }
+            $stmt_del->close();
         }
 
         // Fetch All Items

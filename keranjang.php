@@ -13,16 +13,19 @@ if ($_SESSION['level'] != "pembeli") {
     exit;
 }
 
-$user_id = $_SESSION['userid'];
+$user_id = intval($_SESSION['userid']);
 
 // Query untuk mengambil data dari tabel cart berdasarkan user_id
 $query = "
     SELECT c.product_id, p.name AS product_name, p.image, c.quantity, p.price, (c.quantity * p.price) AS total_price 
     FROM cart c
     JOIN products p ON c.product_id = p.id
-    WHERE c.user_id = '$user_id'
+    WHERE c.user_id = ?
 ";
-$result = mysqli_query($conn, $query);
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $total_price = 0;
 ?>
 

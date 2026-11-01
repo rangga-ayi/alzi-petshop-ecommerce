@@ -1,11 +1,18 @@
 <?php
+session_start();
 include('php/php.php'); // Pastikan file koneksi di-include
 
 header('Content-Type: application/json');
+
+if (!isset($_SESSION['userid'])) {
+    echo json_encode(['success' => false, 'error' => 'Silakan login terlebih dahulu.']);
+    exit;
+}
+
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (isset($data['user_id'], $data['product_id'], $data['quantity'])) {
-    $userId = intval($data['user_id']);
+if (isset($data['product_id'], $data['quantity'])) {
+    $userId = intval($_SESSION['userid']);
     $productId = intval($data['product_id']);
     $quantity = intval($data['quantity']);
 

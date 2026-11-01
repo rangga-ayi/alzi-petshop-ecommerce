@@ -17,63 +17,71 @@ if ($_SESSION['level'] != "admin") {
 $userid = $_SESSION['userid']; // Ambil user ID dari session
 
 // Query untuk mengambil data dari kedua tabel
+$userid = intval($_SESSION['userid']);
+
+// Query untuk mengambil data admin
 $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
 FROM tbluser u 
 LEFT JOIN user_detail d ON u.id = d.id 
-WHERE u.id = '$userid'";
+WHERE u.id = ?";
+$stmt_admin = $conn->prepare($sql);
+$stmt_admin->bind_param("i", $userid);
+$stmt_admin->execute();
+$result = $stmt_admin->get_result();
 
-$result = mysqli_query($conn, $sql);
-
-if ($result->num_rows > 0) {
-$row = mysqli_fetch_assoc($result);
-$foto = $row['foto'];
-$nama = $row['nama'];
-$email = $row['email'];
-$level = $row['level'];
-$jenis_kelamin = $row['jenis_kelamin'];
-$tanggal_lahir = $row['tanggal_lahir'];
-$alamat = $row['alamat'];
-$no_telepon = $row['no_telepon'];
+if ($result && $result->num_rows > 0) {
+    $row = mysqli_fetch_assoc($result);
+    $foto = $row['foto'];
+    $nama = $row['nama'];
+    $email = $row['email'];
+    $level = $row['level'];
+    $jenis_kelamin = $row['jenis_kelamin'];
+    $tanggal_lahir = $row['tanggal_lahir'];
+    $alamat = $row['alamat'];
+    $no_telepon = $row['no_telepon'];
 } else {
-echo "Data user tidak ditemukan.";
+    echo "Data user tidak ditemukan.";
 }
+$stmt_admin->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id']);
-    $nama = $_POST['nama'];
-    $email_baru = $_POST['email'];
+    $nama = trim($_POST['nama']);
+    $email_baru = trim($_POST['email']);
     $password = !empty($_POST['password']) ? sha1($_POST['password']) : null;
-    $level = $_POST['level'];
+    $level = trim($_POST['level']);
 
-    $query = $conn->query("SELECT email FROM tbluser WHERE id = $id");
-    $user = $query->fetch_assoc();
-    $email_lama = $user['email'];
-
-    if ($email_baru === $email_lama) {
-        $sql = "UPDATE tbluser SET 
-                    nama = '$nama',
-                    level = '$level'" .
-               ($password ? ", password = '$password'" : "") .
-               " WHERE id = $id";
+    if ($password) {
+        $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ?, password = ? WHERE id = ?");
+        $stmt_up->bind_param("ssssi", $nama, $email_baru, $level, $password, $id);
     } else {
-        $sql = "UPDATE tbluser SET 
-                    nama = '$nama',
-                    email = '$email_baru',
-                    level = '$level'" .
-               ($password ? ", password = '$password'" : "") .
-               " WHERE id = $id";
+        $stmt_up = $conn->prepare("UPDATE tbluser SET nama = ?, email = ?, level = ? WHERE id = ?");
+        $stmt_up->bind_param("sssi", $nama, $email_baru, $level, $id);
     }
-    $conn->query($sql);
+    $stmt_up->execute();
+    $stmt_up->close();
 }
 
 // Handle Delete
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $conn->query("DELETE FROM tbluser WHERE id=$id");
-    // Hapus file foto lama jika ada
-        if ($foto =! "/imgs/user/default.png") {
-            unlink($foto);
+    $id = intval($_GET['delete']);
+    // Ambil foto user yang akan dihapus
+    $stmt_uf = $conn->prepare("SELECT foto FROM user_detail WHERE id = ?");
+    $stmt_uf->bind_param("i", $id);
+    $stmt_uf->execute();
+    $res_uf = $stmt_uf->get_result();
+    if ($res_uf && $row_uf = $res_uf->fetch_assoc()) {
+        $user_foto = $row_uf['foto'];
+        if (!empty($user_foto) && file_exists('../' . $user_foto) && strpos($user_foto, 'default.png') === false) {
+            @unlink('../' . $user_foto);
         }
+    }
+    $stmt_uf->close();
+
+    $stmt_del = $conn->prepare("DELETE FROM tbluser WHERE id = ?");
+    $stmt_del->bind_param("i", $id);
+    $stmt_del->execute();
+    $stmt_del->close();
 }
 
 // Fetch Users

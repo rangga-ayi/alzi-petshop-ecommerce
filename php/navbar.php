@@ -53,14 +53,16 @@
     // Ambil data keranjang untuk Midtrans
     $items = [];
     $total_price_midtrans = 0;  // Total price untuk Midtrans
-    $querycart = "
+    $user_id = intval($user_id);
+    $stmt_qc1 = $conn->prepare("
         SELECT c.product_id, p.name AS product_name, p.image, c.quantity, p.price, (c.quantity * p.price) AS total_price 
         FROM cart c
         JOIN products p ON c.product_id = p.id
-        WHERE c.user_id = '$user_id'
-    ";
-
-    $resultcart = mysqli_query($conn, $querycart);
+        WHERE c.user_id = ?
+    ");
+    $stmt_qc1->bind_param("i", $user_id);
+    $stmt_qc1->execute();
+    $resultcart = $stmt_qc1->get_result();
     while ($rowc = mysqli_fetch_assoc($resultcart)) {
         if ($rowc['price'] > 0 && $rowc['quantity'] > 0) {
             // Tambahkan harga item ke total price
@@ -86,26 +88,30 @@
     $total_price_midtrans += $shipping_cost;
 
     // Ambil data keranjang untuk tampilan modal (tanpa menghitung total price lagi)
-    $querycart_display = "
+    $stmt_qc2 = $conn->prepare("
         SELECT c.id AS cart_id, c.product_id, p.name AS product_name, p.image, c.quantity, p.price 
         FROM cart c
         JOIN products p ON c.product_id = p.id
-        WHERE c.user_id = '$user_id'
-    ";
-    $resultcart_display = mysqli_query($conn, $querycart_display);
+        WHERE c.user_id = ?
+    ");
+    $stmt_qc2->bind_param("i", $user_id);
+    $stmt_qc2->execute();
+    $resultcart_display = $stmt_qc2->get_result();
 
     $total_price_display = 0; // Total price untuk tampilan modal
 
     // Ambil informasi user dari tabel tbluser dan user_detail
-    $query_user = "
+    $stmt_qu = $conn->prepare("
         SELECT u.nama, u.email, d.alamat, d.no_telepon
         FROM tbluser u
         JOIN user_detail d ON u.id = d.id
-        WHERE u.id = '$user_id'
-    ";
-    
-    $result_user = mysqli_query($conn, $query_user);
-    $user = mysqli_fetch_assoc($result_user);
+        WHERE u.id = ?
+    ");
+    $stmt_qu->bind_param("i", $user_id);
+    $stmt_qu->execute();
+    $result_user = $stmt_qu->get_result();
+    $user = $result_user ? $result_user->fetch_assoc() : null;
+    $stmt_qu->close();
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
         header('Content-Type: application/json'); // Tambahkan header JSON di sini
@@ -137,7 +143,6 @@
                     VALUES (?, ?, ?, ?, ?, ?)");
                 $payment_status = 'Pending';
                 $order_ids = $transaction_details['order_id'];
-                $gross_amount = $transaction_details['gross_amount'] + $shipping_cost;
                 $snap_token = \Midtrans\Snap::getSnapToken($transaction_data);
                 $stmt->bind_param("sssiss", $user_id,
                 $transaction_details['order_id'],
@@ -548,7 +553,9 @@
     </div>
 
     <script>
-    document.getElementById('pay-button').addEventListener('click', function(event) {
+    const navPayButton = document.getElementById('pay-button');
+    if (navPayButton) {
+        navPayButton.addEventListener('click', function(event) {
         event.preventDefault(); // Cegah refresh halaman
         fetch(window.location.href, {
                 method: 'POST',
@@ -583,13 +590,15 @@
                 console.error('Error:', error);
                 alert('Gagal memproses transaksi. Silakan coba lagi.');
             });
-    });
+        });
+    }
 
     const products = <?php echo json_encode($products); ?>;
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
 
-    searchInput.addEventListener('input', function() {
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', function() {
         const query = searchInput.value.toLowerCase().trim();
 
         searchResults.innerHTML = '';
@@ -623,18 +632,21 @@
             searchResults.style.display = 'none';
         }
     });
+    }
 
     // searchInput.addEventListener('blur', function() {
     //     searchInput.value = '';
     //     searchResults.style.display = 'none';
     // });
     document.addEventListener('DOMContentLoaded', function() {
-        const keranjangButton = document.querySelector('#keranjangButton'); // ID tombol keranjang
-        const keranjangModal = new bootstrap.Modal(document.getElementById('keranjangModal'));
-
-        keranjangButton.addEventListener('click', function() {
-            keranjangModal.show();
-        });
+        const keranjangButton = document.querySelector('#keranjangButton');
+        const modalEl = document.getElementById('keranjangModal');
+        if (keranjangButton && modalEl && typeof bootstrap !== 'undefined') {
+            const keranjangModal = new bootstrap.Modal(modalEl);
+            keranjangButton.addEventListener('click', function() {
+                keranjangModal.show();
+            });
+        }
     });
     </script>
 </body>

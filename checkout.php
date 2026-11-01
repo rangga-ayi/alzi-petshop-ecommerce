@@ -9,26 +9,33 @@ if (!isset($_SESSION['userid'])) {
     exit;
 }
 
-$user_id = $_SESSION['userid'];
+$user_id = intval($_SESSION['userid']);
 
-// Ambil informasi user dari tabel tbluser dan user_detail
+// Ambil informasi user dari tabel tbluser dan user_detail dengan prepared statement
 $query_user = "
     SELECT u.nama, u.email, d.alamat, d.no_telepon
     FROM tbluser u
     JOIN user_detail d ON u.id = d.id
-    WHERE u.id = '$user_id'
+    WHERE u.id = ?
 ";
-$result_user = mysqli_query($conn, $query_user);
-$user = mysqli_fetch_assoc($result_user);
+$stmt_qu = $conn->prepare($query_user);
+$stmt_qu->bind_param("i", $user_id);
+$stmt_qu->execute();
+$result_user = $stmt_qu->get_result();
+$user = $result_user ? $result_user->fetch_assoc() : null;
+$stmt_qu->close();
 
 // Ambil informasi produk dari tabel cart
 $query_cart = "
     SELECT c.product_id, p.name AS product_name, c.quantity, p.price, (c.quantity * p.price) AS total_price
     FROM cart c
     JOIN products p ON c.product_id = p.id
-    WHERE c.user_id = '$user_id'
+    WHERE c.user_id = ?
 ";
-$result_cart = mysqli_query($conn, $query_cart);
+$stmt_qc = $conn->prepare($query_cart);
+$stmt_qc->bind_param("i", $user_id);
+$stmt_qc->execute();
+$result_cart = $stmt_qc->get_result();
 
 // Hitung total harga
 $total_price = 0;

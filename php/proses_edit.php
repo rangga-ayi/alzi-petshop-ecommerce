@@ -1,5 +1,12 @@
 <?php
+session_start();
 require 'php.php';
+
+// Periksa apakah user sudah login dan berhak (penjual / admin)
+if (!isset($_SESSION['userid']) || !in_array($_SESSION['level'], ['penjual', 'admin'])) {
+    header("Location: ../login/login_form.php");
+    exit;
+}
 if (isset($_POST["name"]) && isset($_POST["description"]) && isset($_POST["price"]) && isset($_POST["category"])) {
     $id = intval($_POST["id"]);
     $name = trim($_POST["name"]);

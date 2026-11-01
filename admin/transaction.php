@@ -17,8 +17,11 @@
     $userid = $_SESSION['userid']; // Ambil user ID dari session
     // Handle DELETE request
     if (isset($_GET['delete'])) {
-        $id = $_GET['delete'];
-        $conn->query("DELETE FROM transactions WHERE transaction_id = $id");
+        $id = intval($_GET['delete']);
+        $stmt_del = $conn->prepare("DELETE FROM transactions WHERE transaction_id = ?");
+        $stmt_del->bind_param("i", $id);
+        $stmt_del->execute();
+        $stmt_del->close();
     }
 
     // Fetch data from database
@@ -45,9 +48,11 @@
     $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
     FROM tbluser u 
     LEFT JOIN user_detail d ON u.id = d.id 
-    WHERE u.id = '$userid'";
-
-    $resultuser = mysqli_query($conn, $sql);
+    WHERE u.id = ?";
+    $stmt_u = $conn->prepare($sql);
+    $stmt_u->bind_param("i", $userid);
+    $stmt_u->execute();
+    $resultuser = $stmt_u->get_result();
 
     if ($resultuser->num_rows > 0) {
         $row = mysqli_fetch_assoc($resultuser);

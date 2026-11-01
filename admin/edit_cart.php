@@ -14,21 +14,29 @@ if ($_SESSION['level'] != "admin") {
 }
 // edit.php
 if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $result = $conn->query("SELECT * FROM cart WHERE id=$id");
-    $row = $result->fetch_assoc();
+    $id = intval($_GET['id']);
+    $stmt = $conn->prepare("SELECT * FROM cart WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result ? $result->fetch_assoc() : null;
+    $stmt->close();
 
     if (isset($_POST['update'])) {
-        $user_name = $_POST['user_name'];
-        $product_name = $_POST['product_name'];
-        $quantity = $_POST['quantity'];
-        $price = $_POST['price'];
+        $user_name = trim($_POST['user_name']);
+        $product_name = trim($_POST['product_name']);
+        $quantity = intval($_POST['quantity']);
+        $price = intval(preg_replace('/[^0-9]/', '', $_POST['price']));
 
-        $sql = "UPDATE cart SET user_name='$user_name', product_name='$product_name', quantity=$quantity, price=$price WHERE id=$id";
-        if ($conn->query($sql) === TRUE) {
+        $stmt_up = $conn->prepare("UPDATE cart SET user_name = ?, product_name = ?, quantity = ?, price = ? WHERE id = ?");
+        $stmt_up->bind_param("ssiii", $user_name, $product_name, $quantity, $price, $id);
+        if ($stmt_up->execute()) {
+            $stmt_up->close();
             header("Location: cart.php");
+            exit;
         } else {
-            echo "<div class='alert alert-danger'>Error: " . $conn->error . "</div>";
+            echo "<div class='alert alert-danger'>Error: " . htmlspecialchars($conn->error) . "</div>";
+            $stmt_up->close();
         }
     }
 } else {

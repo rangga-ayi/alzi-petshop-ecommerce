@@ -14,9 +14,11 @@
     $sql = "SELECT u.id, u.nama, u.email, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon, d.alamat_detail, d.foto
             FROM tbluser u 
             LEFT JOIN user_detail d ON u.id = d.id 
-            WHERE u.id = '$userid'";
-
-    $result = mysqli_query($conn, $sql);
+            WHERE u.id = ?";
+    $stmt_u = $conn->prepare($sql);
+    $stmt_u->bind_param("i", $userid);
+    $stmt_u->execute();
+    $result = $stmt_u->get_result();
 
     if ($result->num_rows > 0) {
         $row = mysqli_fetch_assoc($result);
@@ -36,7 +38,10 @@
     $lat_saved = -3.0;
     $lon_saved = 104.7;
     $has_coords = false;
-    $res_addr = mysqli_query($conn, "SELECT latitude, longitude FROM detail_address WHERE user_id = '$userid'");
+    $stmt_addr = $conn->prepare("SELECT latitude, longitude FROM detail_address WHERE user_id = ?");
+    $stmt_addr->bind_param("i", $userid);
+    $stmt_addr->execute();
+    $res_addr = $stmt_addr->get_result();
     if ($res_addr && $row_addr = mysqli_fetch_assoc($res_addr)) {
         if (!empty($row_addr['latitude']) && !empty($row_addr['longitude'])) {
             $lat_saved = floatval($row_addr['latitude']);

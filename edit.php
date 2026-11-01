@@ -23,9 +23,11 @@ $userid = $_SESSION['userid']; // Ambil user ID dari session
 $sql = "SELECT u.id, u.nama, u.email, u.level, d.foto, d.jenis_kelamin, d.tanggal_lahir, d.alamat, d.no_telepon 
         FROM tbluser u 
         LEFT JOIN user_detail d ON u.id = d.id 
-        WHERE u.id = '$userid'";
-
-$result = mysqli_query($conn, $sql);
+        WHERE u.id = ?";
+$stmt_u = $conn->prepare($sql);
+$stmt_u->bind_param("i", $userid);
+$stmt_u->execute();
+$result = $stmt_u->get_result();
 
 if ($result->num_rows > 0) {
     $row = mysqli_fetch_assoc($result);
@@ -65,16 +67,20 @@ if ($result->num_rows > 0) {
 // Ambil produk berdasarkan ID dari parameter URL
 $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
 
-$data = mysqli_query($conn, "SELECT * FROM products WHERE id = '$product_id'");
-$productd = mysqli_fetch_assoc($data);
-if ($result && $result->num_rows > 0) {
+$stmt_prod = $conn->prepare("SELECT * FROM products WHERE id = ?");
+$stmt_prod->bind_param("i", $product_id);
+$stmt_prod->execute();
+$data = $stmt_prod->get_result();
+$productd = $data ? $data->fetch_assoc() : null;
+if ($productd) {
     $nama_p = $productd['name'];
     $deskripsi_p = $productd['description'];
     $image_p = $productd['image'];
     $harga_p = $productd['price'];
     $category_p = $productd['category'];
-    $satuan_p = $productd['satuan'];
+    $satuan_p = isset($productd['satuan']) ? $productd['satuan'] : '';
 }
+$stmt_prod->close();
 
 // Nama Depan
 function getFirstName($fullName) {
